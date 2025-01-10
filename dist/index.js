@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const fs_1 = require("fs");
-// import {NSecSigner} from "@nostrify/nostrify/_dist/NSecSigner";
 const lib_1 = require("blossom-client-sdk/lib");
 const ndk_1 = require("@nostr-dev-kit/ndk");
 console.log('Starting blossom Upload');
