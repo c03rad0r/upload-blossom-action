@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const BlossomClient = __importStar(require("blossom-client-sdk"));
+// import {EventTemplate, SignedEvent} from "blossom-client-sdk";
 console.log('Starting blossom Upload');
 const secretKey = new TextEncoder().encode("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
 // const privateKeySigner = new NSecSigner(secretKey)
@@ -43,15 +44,15 @@ async function upload(filePath, host) {
     // const blob = new Blob([data], {type: 'text/plain'});
     async function signer(event) {
         //
-        //     const signer = new NDKPrivateKeySigner(secretKey);
-        //     const pubkey = await signer.user().then(u => u.pubkey)
-        //
-        //     const signature =  await signer.sign(event as NostrEvent);
-        //
-        //     const y = event as NostrEvent
-        //     const x: SignedEvent = { ...event, pubkey: pubkey, sig: signature, id: y.id! };
-        //
-        //     return x;
+        // //     const signer = new NDKPrivateKeySigner(secretKey);
+        // //     const pubkey = await signer.user().then(u => u.pubkey)
+        // //
+        // //     const signature =  await signer.sign(event as NostrEvent);
+        // //
+        // //     const y = event as NostrEvent
+        // //     const x: SignedEvent = { ...event, pubkey: pubkey, sig: signature, id: y.id! };
+        // //
+        // //     return x;
         const x = {
             content: "",
             created_at: 0,

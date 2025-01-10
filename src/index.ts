@@ -2,7 +2,7 @@ import {getInput, setFailed, setOutput} from "@actions/core"
 import { readFileSync } from 'fs';
 import {NDKPrivateKeySigner, NostrEvent} from "@nostr-dev-kit/ndk";
 import * as BlossomClient from "blossom-client-sdk";
-import {type EventTemplate, type SignedEvent} from "blossom-client-sdk/lib/types";
+// import {EventTemplate, SignedEvent} from "blossom-client-sdk";
 
 console.log('Starting blossom Upload');
 
@@ -15,18 +15,18 @@ async function upload(filePath: string, host: string): Promise<string> {
     // const data = readFileSync(filePath, 'utf-8');
     // const blob = new Blob([data], {type: 'text/plain'});
 
-    async function signer(event: EventTemplate): Promise<SignedEvent> {
+    async function signer(event: BlossomClient.EventTemplate): Promise<BlossomClient.SignedEvent> {
     //
-    //     const signer = new NDKPrivateKeySigner(secretKey);
-    //     const pubkey = await signer.user().then(u => u.pubkey)
-    //
-    //     const signature =  await signer.sign(event as NostrEvent);
-    //
-    //     const y = event as NostrEvent
-    //     const x: SignedEvent = { ...event, pubkey: pubkey, sig: signature, id: y.id! };
-    //
-    //     return x;
-        const x : SignedEvent = {
+    // //     const signer = new NDKPrivateKeySigner(secretKey);
+    // //     const pubkey = await signer.user().then(u => u.pubkey)
+    // //
+    // //     const signature =  await signer.sign(event as NostrEvent);
+    // //
+    // //     const y = event as NostrEvent
+    // //     const x: SignedEvent = { ...event, pubkey: pubkey, sig: signature, id: y.id! };
+    // //
+    // //     return x;
+        const x : BlossomClient.SignedEvent = {
             content: "",
             created_at: 0,
             id: "",
