@@ -1,0 +1,12 @@
+name: 'Upload to Blossom (Nostr)'
+description: 'Upload a file to Blossom (nostr)'
+inputs:
+  host:
+    description: 'The host to upload to'
+    required: true
+outputs:
+  blossom-hash:
+    description: 'The hash of the file on blossom'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

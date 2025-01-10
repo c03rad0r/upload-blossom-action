@@ -1,0 +1,17 @@
+{
+  "name": "upload-blossom-action",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  },
+  "private": true
+}
