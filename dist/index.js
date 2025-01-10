@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const blossom_client_sdk_1 = require("blossom-client-sdk");
-// import {EventTemplate, SignedEvent} from "blossom-client-sdk/lib/types";
 console.log('Starting blossom Upload');
 const secretKey = new TextEncoder().encode("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
 // const privateKeySigner = new NSecSigner(secretKey)
