@@ -1,6 +1,5 @@
 import {getInput, setFailed, setOutput} from "@actions/core"
 import {NSecSigner} from "@nostrify/nostrify/_dist/NSecSigner";
-import {BlossomUploader} from "@nostrify/nostrify/_dist/uploaders/BlossomUploader";
 import { readFileSync } from 'fs';
 import {BlossomClient} from "blossom-client-sdk";
 
