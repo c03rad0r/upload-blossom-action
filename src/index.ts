@@ -1,6 +1,8 @@
+import core from "@actions/core"
+
 console.log('Happy developing ✨')
 
-import core from "@actions/core"
+
 
 try {
     // Fetch the value of the input 'who-to-greet' specified in action.yml

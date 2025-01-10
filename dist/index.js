@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-console.log('Happy developing ✨');
 const core_1 = __importDefault(require("@actions/core"));
+console.log('Happy developing ✨');
 try {
     // Fetch the value of the input 'who-to-greet' specified in action.yml
     const host = core_1.default.getInput('host');
