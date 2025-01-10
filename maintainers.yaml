@@ -1,0 +1,10 @@
+identifier: upload-blossom-action
+maintainers:
+- npub1hw6amg8p24ne08c9gdq8hhpqx0t0pwanpae9z25crn7m9uy7yarse465gr
+relays:
+- wss://nos.lol/
+- wss://relay.damus.io/
+- wss://nostr.wine/
+- wss://relay.primal.net/
+- wss://relay.nostrplebs.com/
+- wss://relay.fountain.fm/
