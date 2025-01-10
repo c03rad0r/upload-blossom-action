@@ -1,7 +1,7 @@
 import {getInput, setFailed, setOutput} from "@actions/core"
 import { readFileSync } from 'fs';
 import {NDKPrivateKeySigner, NostrEvent} from "@nostr-dev-kit/ndk";
-import {BlossomClient} from "blossom-client-sdk";
+import * as BlossomClient from "blossom-client-sdk";
 import {type EventTemplate, type SignedEvent} from "blossom-client-sdk/lib/types";
 
 console.log('Starting blossom Upload');
@@ -39,7 +39,7 @@ async function upload(filePath: string, host: string): Promise<string> {
         return x;
     }
 
-    const client = new BlossomClient(host, signer);
+    const client = new BlossomClient.BlossomClient(host, signer);
     //
     // const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file')
     // const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
