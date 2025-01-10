@@ -1,7 +1,7 @@
 import {getInput, setFailed, setOutput} from "@actions/core"
-import {NSecSigner} from "@nostrify/nostrify/_dist/NSecSigner";
 import { readFileSync } from 'fs';
 import {BlossomClient} from "blossom-client-sdk";
+import {NSecSigner} from "@nostrify/nostrify";
 
 console.log('Starting blossom Upload');
 
@@ -23,7 +23,6 @@ async function upload(filePath: string, host:string): Promise<string>    {
     console.log(result)
     console.log(`Blob uploaded!, ${url}`);
     return url;
-
 }
 
 try {
