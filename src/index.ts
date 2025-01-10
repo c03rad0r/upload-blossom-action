@@ -1,4 +1,4 @@
-import core from "@actions/core"
+import {setFailed, getInput, setOutput} from "@actions/core"
 
 console.log('Happy developing ✨')
 
@@ -6,20 +6,20 @@ console.log('Happy developing ✨')
 
 try {
     // Fetch the value of the input 'who-to-greet' specified in action.yml
-    const host = core.getInput('host');
+    const host = getInput('host');
     console.log(`Uploading file to host: ${host}!`);
 
     // Record the time of greeting as an output
     const blossomHash = "ljsdlkfjhdslkhjfoiejofeljlksjlke"
-    core.setOutput("blossom-hash", blossomHash);
+    setOutput("blossom-hash", blossomHash);
 
 } catch (error) {
     console.log(error);
 
     if(error instanceof Error) {
-        core.setFailed(error.message);
+        setFailed(error.message);
     } else{
-        core.setFailed("unexpected error");
+        setFailed("unexpected error");
     }
 
 }
