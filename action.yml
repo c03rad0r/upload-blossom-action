@@ -4,6 +4,9 @@ inputs:
   host:
     description: 'The host to upload to'
     required: true
+  filePath:
+    description: 'The full filePath of the file to upload'
+    required: true
 outputs:
   blossom-hash:
     description: 'The hash of the file on blossom'
