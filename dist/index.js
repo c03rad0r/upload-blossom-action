@@ -2,15 +2,24 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const fs_1 = require("fs");
-const NSecSigner_1 = require("@nostrify/nostrify/_dist/NSecSigner");
-const client_1 = require("blossom-client-sdk/lib/client");
+// import {NSecSigner} from "@nostrify/nostrify/_dist/NSecSigner";
+const lib_1 = require("blossom-client-sdk/lib");
+const ndk_1 = require("@nostr-dev-kit/ndk");
 console.log('Starting blossom Upload');
 const secretKey = new TextEncoder().encode("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
-const privateKeySigner = new NSecSigner_1.NSecSigner(secretKey);
+// const privateKeySigner = new NSecSigner(secretKey)
 async function upload(filePath, host) {
     const data = (0, fs_1.readFileSync)(filePath, 'utf-8');
     const blob = new Blob([data], { type: 'text/plain' });
-    const client = new client_1.BlossomClient(host, (event) => privateKeySigner.signEvent(event));
+    async function signer(event) {
+        const signer = new ndk_1.NDKPrivateKeySigner(secretKey);
+        const pubkey = await signer.user().then(u => u.pubkey);
+        const signature = await signer.sign(event);
+        const y = event;
+        const x = Object.assign(Object.assign({}, event), { pubkey: pubkey, sig: signature, id: y.id });
+        return x;
+    }
+    const client = new lib_1.BlossomClient(host, signer);
     const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file');
     const result = await client.uploadBlob(blob, { auth: uploadAuthEvent });
     const url = result.url;

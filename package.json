@@ -9,6 +9,7 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
+    "@nostr-dev-kit/ndk": "^2.11.0",
     "@nostrify/nostrify": "npm:@jsr/nostrify__nostrify@^0.37.0",
     "@types/node": "^22.10.5",
     "blossom-client-sdk": "^2.1.1",
