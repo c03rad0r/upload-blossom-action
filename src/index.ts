@@ -1,8 +1,7 @@
 import {getInput, setFailed, setOutput} from "@actions/core"
 import { readFileSync } from 'fs';
-import {BlossomClient} from "blossom-client-sdk/lib";
 import {NDKPrivateKeySigner, NostrEvent} from "@nostr-dev-kit/ndk";
-import {EventTemplate, SignedEvent} from "blossom-client-sdk";
+import {EventTemplate, SignedEvent, BlossomClient} from "blossom-client-sdk";
 
 console.log('Starting blossom Upload');
 
