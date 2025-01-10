@@ -1,7 +1,7 @@
 import {getInput, setFailed, setOutput} from "@actions/core"
 import { readFileSync } from 'fs';
-import {BlossomClient} from "blossom-client-sdk";
 import {NSecSigner} from "@nostrify/nostrify/_dist/NSecSigner";
+import { BlossomClient } from "blossom-client-sdk/lib/client";
 
 console.log('Starting blossom Upload');
 
