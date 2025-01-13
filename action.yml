@@ -12,4 +12,4 @@ outputs:
     description: 'The hash of the file on blossom'
 runs:
   using: 'node20'
-  main: 'dist/index.js'
+  main: 'index.js'
