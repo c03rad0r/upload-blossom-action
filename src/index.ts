@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import {NDKPrivateKeySigner, NostrEvent} from "@nostr-dev-kit/ndk";
 import {BlossomClient, EventTemplate} from "blossom-client-sdk";
 import {SignedEvent} from "blossom-client-sdk";
+import mime from "mime";
 // import {EventTemplate, SignedEvent} from "blossom-client-sdk";
 
 console.log('Starting blossom Upload');
@@ -13,7 +14,9 @@ console.log('Starting blossom Upload');
 
 async function upload(filePath: string, host: string): Promise<string> {
     const data = readFileSync(filePath, 'utf-8');
-    const blob = new Blob([data], {type: 'text/plain'});
+
+    const fileType = mime.getType(filePath);
+    const blob = new Blob([data], {type: fileType?.toString()});
 
     async function signer(event: EventTemplate): Promise<SignedEvent> {
 
@@ -25,23 +28,13 @@ async function upload(filePath: string, host: string): Promise<string> {
         const y = event as NostrEvent
         const x: SignedEvent = { ...event, pubkey: pubkey, sig: signature, id: y.id! };
 
-        // return x;
-        // const x : BlossomClient.SignedEvent = {
-        //     content: "",
-        //     created_at: 0,
-        //     id: "",
-        //     kind: 0,
-        //     pubkey: "",
-        //     sig: "",
-        //     tags: []
-        // }
-
         return x;
     }
 
     const client = new BlossomClient(host, signer);
     //
     const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file')
+
     const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
     //
     const url = result.url
