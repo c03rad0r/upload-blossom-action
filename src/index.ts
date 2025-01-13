@@ -11,7 +11,6 @@ const secretKey: Uint8Array = new TextEncoder().encode("5de4e082b712da4364685141
 
 // const privateKeySigner = new NSecSigner(secretKey)
 
-
 async function upload(filePath: string, host: string): Promise<string> {
     const data = readFileSync(filePath, 'utf-8');
     const blob = new Blob([data], {type: 'text/plain'});
