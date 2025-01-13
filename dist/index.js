@@ -52848,10 +52848,10 @@ async function upload(filePath, host) {
     }
     const client = new BlossomClient(host, signer);
     //
-    // const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file')
-    // const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
+    const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file');
+    const result = await client.uploadBlob(blob, { auth: uploadAuthEvent });
     //
-    const url = "hello"; //result.url
+    const url = result.url;
     //
     // console.log(result)
     console.log(`Blob uploaded!, ${url}`);
@@ -52861,7 +52861,7 @@ try {
     // Fetch the value of the input 'who-to-greet' specified in action.yml
     const host = (0,core.getInput)('host');
     const filePath = (0,core.getInput)('filePath');
-    console.log(`Uploading file ${filePath} to host: ${host}!`);
+    console.log(`Uploading file '${filePath}' to host: '${host}'!`);
     upload(filePath, host)
         .then(blossomHash => {
         (0,core.setOutput)("blossom-hash", blossomHash);
