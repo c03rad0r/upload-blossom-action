@@ -41,10 +41,10 @@ async function upload(filePath: string, host: string): Promise<string> {
 
     const client = new BlossomClient(host, signer);
     //
-    // const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file')
-    // const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
+    const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file')
+    const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
     //
-    const url = "hello" //result.url
+    const url = result.url
     //
     // console.log(result)
     console.log(`Blob uploaded!, ${url}`);
@@ -56,7 +56,7 @@ try {
     const host = getInput('host');
     const filePath = getInput('filePath');
 
-    console.log(`Uploading file ${filePath} to host: ${host}!`);
+    console.log(`Uploading file '${filePath}' to host: '${host}'!`);
 
     upload(filePath, host)
         .then(blossomHash => {
