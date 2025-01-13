@@ -7,9 +7,9 @@ import {SignedEvent} from "blossom-client-sdk";
 
 console.log('Starting blossom Upload');
 
-const secretKey: Uint8Array = new TextEncoder().encode("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61")
-
+// const secretKey: Uint8Array = new TextEncoder().encode("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61")
 // const privateKeySigner = new NSecSigner(secretKey)
+
 
 async function upload(filePath: string, host: string): Promise<string> {
     const data = readFileSync(filePath, 'utf-8');
@@ -17,7 +17,7 @@ async function upload(filePath: string, host: string): Promise<string> {
 
     async function signer(event: EventTemplate): Promise<SignedEvent> {
 
-        const signer = new NDKPrivateKeySigner(secretKey);
+        const signer = new NDKPrivateKeySigner("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
         const pubkey = await signer.user().then(u => u.pubkey)
 
         const signature =  await signer.sign(event as NostrEvent);

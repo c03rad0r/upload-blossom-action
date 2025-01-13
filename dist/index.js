@@ -52823,13 +52823,13 @@ function handleBrokenImages(root, getServers) {
 
 // import {EventTemplate, SignedEvent} from "blossom-client-sdk";
 console.log('Starting blossom Upload');
-const secretKey = new TextEncoder().encode("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
+// const secretKey: Uint8Array = new TextEncoder().encode("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61")
 // const privateKeySigner = new NSecSigner(secretKey)
 async function upload(filePath, host) {
     const data = (0,external_fs_.readFileSync)(filePath, 'utf-8');
     const blob = new Blob([data], { type: 'text/plain' });
     async function signer(event) {
-        const signer = new NDKPrivateKeySigner(secretKey);
+        const signer = new NDKPrivateKeySigner("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
         const pubkey = await signer.user().then(u => u.pubkey);
         const signature = await signer.sign(event);
         const y = event;
