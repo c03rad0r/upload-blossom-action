@@ -6,7 +6,7 @@ import mime from "mime";
 
 console.log('Starting blossom Upload');
 
-async function upload(filePath: string, host: string): Promise<void> {
+async function upload(filePath: string, host: string): Promise<string> {
     const data = readFileSync(filePath, 'utf-8');
 
     const fileType = mime.getType(filePath);
@@ -28,35 +28,26 @@ async function upload(filePath: string, host: string): Promise<void> {
     const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
 
     console.log(`Blob uploaded!, ${result.url}`);
+    return result.url;
 }
 
-try {
-    // Fetch the value of the input 'who-to-greet' specified in action.yml
-    const host = getInput('host');
-    const filePath = getInput('filePath');
+async function run(): Promise<void> {
+    try {
+        const host = getInput('host');
+        const filePath = getInput('filePath');
 
-    console.log(`Uploading file '${filePath}' to host: '${host}'!`);
+        console.log(`Uploading file '${filePath}' to host: '${host}'!`);
 
-    upload(filePath, host)
-        .then(blossomHash => {
-            setOutput("blossom-hash", blossomHash);
-        })
-        .catch((error) => {
-            console.error("Blossom Upload failed with error", error);
-
-            if(error instanceof Error) {
-                setFailed(error.message);
-            } else{
-                setFailed("unexpected error");
-            }
-        })
-
-} catch (error) {
-    console.error("Blossom Upload failed with error", error);
-
-    if(error instanceof Error) {
-        setFailed(error.message);
-    } else{
-        setFailed("unexpected error");
+        const hash = await upload(filePath, host);
+        setOutput("blossom-hash", hash);
+    } catch (error) {
+        console.error("Blossom Upload failed with error", error);
+        if(error instanceof Error) {
+            setFailed(error.message);
+        } else {
+            setFailed("unexpected error");
+        }
     }
 }
+
+run();
