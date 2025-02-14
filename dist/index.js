@@ -53990,17 +53990,17 @@ async function upload(filePath, host) {
     const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file');
     const result = await client.uploadBlob(blob, { auth: uploadAuthEvent });
     console.log(`Blob uploaded!, ${result.url}`);
+    return result.url;
 }
-try {
-    // Fetch the value of the input 'who-to-greet' specified in action.yml
-    const host = (0,core.getInput)('host');
-    const filePath = (0,core.getInput)('filePath');
-    console.log(`Uploading file '${filePath}' to host: '${host}'!`);
-    upload(filePath, host)
-        .then(blossomHash => {
-        (0,core.setOutput)("blossom-hash", blossomHash);
-    })
-        .catch((error) => {
+async function run() {
+    try {
+        const host = (0,core.getInput)('host');
+        const filePath = (0,core.getInput)('filePath');
+        console.log(`Uploading file '${filePath}' to host: '${host}'!`);
+        const hash = await upload(filePath, host);
+        (0,core.setOutput)("blossom-hash", hash);
+    }
+    catch (error) {
         console.error("Blossom Upload failed with error", error);
         if (error instanceof Error) {
             (0,core.setFailed)(error.message);
@@ -54008,17 +54008,9 @@ try {
         else {
             (0,core.setFailed)("unexpected error");
         }
-    });
-}
-catch (error) {
-    console.error("Blossom Upload failed with error", error);
-    if (error instanceof Error) {
-        (0,core.setFailed)(error.message);
-    }
-    else {
-        (0,core.setFailed)("unexpected error");
     }
 }
+run();
 
 })();
 
