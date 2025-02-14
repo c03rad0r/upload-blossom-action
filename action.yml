@@ -1,18 +1,23 @@
-name: 'Upload to Blossom (Nostr)'
-description: 'Upload a file to Blossom (nostr)'
+name: 'Blossom File Uploader'
+description: 'Uploads files to a Blossom server with Nostr authentication'
 branding:
   color: purple
   icon: upload
 inputs:
   host:
-    description: 'The host to upload to'
+    description: 'URL of the Blossom server to upload to (e.g "https://blossom.example.com")'
     required: true
   filePath:
-    description: 'The full filePath of the file to upload'
+    description: 'Path to the file to upload (relative to repository root)'
+    required: true
+  nostrPrivateKey:
+    description: 'Nostr NSEC private for signing upload authorization'
     required: true
 outputs:
-  blossom-hash:
-    description: 'The hash of the file on blossom'
+  blossomUrl:
+    description: 'Full URL of the uploaded file on Blossom server'
+  blossomHash:
+    description: 'SHA256 hash of the uploaded file'
 runs:
   using: 'node20'
   main: 'dist/index.js'

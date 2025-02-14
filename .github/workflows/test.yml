@@ -1,0 +1,47 @@
+name: Test Blossom Upload
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-upload:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create test file
+      run: |
+        echo "This is a test file for Blossom upload" > test.txt
+        echo "Test file created at: $(pwd)/test.txt"
+
+    - name: Check Required Secrets
+      run: |
+        missing_secrets=()
+    
+        if [ -z "${{ secrets.NSEC }}" ]; then
+          missing_secrets+=("NSEC")
+        fi
+    
+        # Add any other required secrets/variables here following the same pattern
+        if [ ${#missing_secrets[@]} -ne 0 ]; then
+          echo "::error::Missing required secrets: ${missing_secrets[*]}"
+          echo "Please set the following secrets in your repository settings:"
+          printf '%s\n' "${missing_secrets[@]}"
+          exit 1
+        else
+          echo "All required secrets are set"
+        fi
+
+    - name: Upload to Blossom
+      uses: ./
+      id: blossom-upload
+      with:
+        host: "https://blossom.swissdash.site"
+        filePath: test.txt
+        nostrPrivateKey: ${{ secrets.NSEC }}
+
+    - name: Show results
+      run: |
+        echo "Uploaded URL: ${{ steps.blossom-upload.outputs.blossomUrl }}"
+        echo "File hash: ${{ steps.blossom-upload.outputs.blossomHash }}"

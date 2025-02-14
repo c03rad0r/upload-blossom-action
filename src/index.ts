@@ -6,14 +6,14 @@ import mime from "mime";
 
 console.log('Starting blossom Upload');
 
-async function upload(filePath: string, host: string): Promise<void> {
+async function upload(filePath: string, host: string, nostrPrivateKey: string): Promise<void> {
     const data = readFileSync(filePath, 'utf-8');
 
     const fileType = mime.getType(filePath);
     const blob = new Blob([data], {type: fileType?.toString()});
 
     async function signer(event: EventTemplate): Promise<SignedEvent> {
-        const signer = new NDKPrivateKeySigner("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
+        const signer = new NDKPrivateKeySigner(nostrPrivateKey);
         const pubkey = await signer.user().then(u => u.pubkey)
 
         const signature =  await signer.sign(event as NostrEvent);
@@ -23,10 +23,11 @@ async function upload(filePath: string, host: string): Promise<void> {
     }
 
     const client = new BlossomClient(host, signer);
-
     const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file')
     const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
 
+    setOutput("blossomUrl", result.url);
+    setOutput("blossomHash", result.sha256);
     console.log(`Blob uploaded!, ${result.url}`);
 }
 
@@ -34,13 +35,11 @@ try {
     // Fetch the value of the input 'who-to-greet' specified in action.yml
     const host = getInput('host');
     const filePath = getInput('filePath');
+    const nostrPrivateKey = getInput('nostrPrivateKey');
 
     console.log(`Uploading file '${filePath}' to host: '${host}'!`);
 
-    upload(filePath, host)
-        .then(blossomHash => {
-            setOutput("blossom-hash", blossomHash);
-        })
+    upload(filePath, host, nostrPrivateKey)
         .catch((error) => {
             console.error("Blossom Upload failed with error", error);
 
