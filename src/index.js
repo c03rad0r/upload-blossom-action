@@ -35,6 +35,7 @@ async function upload(filePath, host) {
     try {
         const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file');
         const result = await client.uploadBlob(blob, { auth: uploadAuthEvent });
+        console.log("Result URL:", result.url); // Check this!
         core_1.setOutput("blossom-hash", result.url);
         return result.url;
     } catch (error) {
