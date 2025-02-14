@@ -29,17 +29,21 @@ async function upload(filePath, host) {
         // }
         return x;
     }
+
     const client = new blossom_client_sdk_1.BlossomClient(host, signer);
-    //
-    // const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file')
-    // const result = await client.uploadBlob(blob, {auth: uploadAuthEvent})
-    //
-    const url = "hello"; //result.url
-    //
-    // console.log(result)
-    console.log(`Blob uploaded!, ${url}`);
-    return url;
+
+    try {
+        const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file');
+        const result = await client.uploadBlob(blob, { auth: uploadAuthEvent });
+        console.log(`Blob uploaded!, ${result.url}`); // Use result.url
+        return result.url; // Return the actual URL
+    } catch (error) {
+        console.error("Blossom Upload failed with error", error);
+        core_1.setFailed(error.message); // Set action as failed
+        throw error; // Re-throw the error to be caught by the outer try-catch
+    }
 }
+
 try {
     // Fetch the value of the input 'who-to-greet' specified in action.yml
     const host = (0, core_1.getInput)('host');
