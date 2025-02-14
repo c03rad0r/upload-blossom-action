@@ -13,7 +13,6 @@ inputs:
 outputs:
   blossom-hash:
     description: 'The hash of the file on blossom'
-    value: ${{ steps.upload.outputs.blossom-hash }}
 runs:
   using: 'node20'
   main: 'dist/index.js'
