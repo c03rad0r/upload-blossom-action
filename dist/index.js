@@ -14969,6 +14969,14 @@ const { isUint8Array, isArrayBuffer } = __nccwpck_require__(8253)
 const { File: UndiciFile } = __nccwpck_require__(3041)
 const { parseMIMEType, serializeAMimeType } = __nccwpck_require__(4322)
 
+let random
+try {
+  const crypto = __nccwpck_require__(7598)
+  random = (max) => crypto.randomInt(0, max)
+} catch {
+  random = (max) => Math.floor(Math.random(max))
+}
+
 let ReadableStream = globalThis.ReadableStream
 
 /** @type {globalThis['File']} */
@@ -15054,7 +15062,7 @@ function extractBody (object, keepalive = false) {
     // Set source to a copy of the bytes held by object.
     source = new Uint8Array(object.buffer.slice(object.byteOffset, object.byteOffset + object.byteLength))
   } else if (util.isFormDataLike(object)) {
-    const boundary = `----formdata-undici-0${`${Math.floor(Math.random() * 1e11)}`.padStart(11, '0')}`
+    const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`
     const prefix = `--${boundary}\r\nContent-Disposition: form-data`
 
     /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
@@ -30958,6 +30966,370 @@ module.exports = parseParams
 
 /***/ }),
 
+/***/ 3286:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   DO: () => (/* binding */ abytes),
+/* harmony export */   Id: () => (/* binding */ concatBytes),
+/* harmony export */   My: () => (/* binding */ bytesToHex),
+/* harmony export */   OG: () => (/* binding */ bitMask),
+/* harmony export */   Ph: () => (/* binding */ bytesToNumberBE),
+/* harmony export */   Q5: () => (/* binding */ validateObject),
+/* harmony export */   aK: () => (/* binding */ aInRange),
+/* harmony export */   aT: () => (/* binding */ hexToBytes),
+/* harmony export */   aY: () => (/* binding */ isBytes),
+/* harmony export */   dJ: () => (/* binding */ bitLen),
+/* harmony export */   e8: () => (/* binding */ abool),
+/* harmony export */   fg: () => (/* binding */ createHmacDrbg),
+/* harmony export */   lX: () => (/* binding */ bytesToNumberLE),
+/* harmony export */   lq: () => (/* binding */ numberToBytesBE),
+/* harmony export */   qj: () => (/* binding */ ensureBytes),
+/* harmony export */   r4: () => (/* binding */ inRange),
+/* harmony export */   x: () => (/* binding */ memoized),
+/* harmony export */   z: () => (/* binding */ numberToBytesLE),
+/* harmony export */   zW: () => (/* binding */ numberToHexUnpadded)
+/* harmony export */ });
+/* unused harmony exports hexToNumber, numberToVarBytesBE, equalBytes, utf8ToBytes, bitGet, bitSet, notImplemented */
+/**
+ * Hex, bytes and number utilities.
+ * @module
+ */
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+// 100 lines of code in the file are duplicated from noble-hashes (utils).
+// This is OK: `abstract` directory does not use noble-hashes.
+// User may opt-in into using different hashing library. This way, noble-hashes
+// won't be included into their bundle.
+const _0n = /* @__PURE__ */ BigInt(0);
+const _1n = /* @__PURE__ */ BigInt(1);
+const _2n = /* @__PURE__ */ BigInt(2);
+function isBytes(a) {
+    return a instanceof Uint8Array || (ArrayBuffer.isView(a) && a.constructor.name === 'Uint8Array');
+}
+function abytes(item) {
+    if (!isBytes(item))
+        throw new Error('Uint8Array expected');
+}
+function abool(title, value) {
+    if (typeof value !== 'boolean')
+        throw new Error(title + ' boolean expected, got ' + value);
+}
+// Array where index 0xf0 (240) is mapped to string 'f0'
+const hexes = /* @__PURE__ */ Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, '0'));
+/**
+ * @example bytesToHex(Uint8Array.from([0xca, 0xfe, 0x01, 0x23])) // 'cafe0123'
+ */
+function bytesToHex(bytes) {
+    abytes(bytes);
+    // pre-caching improves the speed 6x
+    let hex = '';
+    for (let i = 0; i < bytes.length; i++) {
+        hex += hexes[bytes[i]];
+    }
+    return hex;
+}
+function numberToHexUnpadded(num) {
+    const hex = num.toString(16);
+    return hex.length & 1 ? '0' + hex : hex;
+}
+function hexToNumber(hex) {
+    if (typeof hex !== 'string')
+        throw new Error('hex string expected, got ' + typeof hex);
+    return hex === '' ? _0n : BigInt('0x' + hex); // Big Endian
+}
+// We use optimized technique to convert hex string to byte array
+const asciis = { _0: 48, _9: 57, A: 65, F: 70, a: 97, f: 102 };
+function asciiToBase16(ch) {
+    if (ch >= asciis._0 && ch <= asciis._9)
+        return ch - asciis._0; // '2' => 50-48
+    if (ch >= asciis.A && ch <= asciis.F)
+        return ch - (asciis.A - 10); // 'B' => 66-(65-10)
+    if (ch >= asciis.a && ch <= asciis.f)
+        return ch - (asciis.a - 10); // 'b' => 98-(97-10)
+    return;
+}
+/**
+ * @example hexToBytes('cafe0123') // Uint8Array.from([0xca, 0xfe, 0x01, 0x23])
+ */
+function hexToBytes(hex) {
+    if (typeof hex !== 'string')
+        throw new Error('hex string expected, got ' + typeof hex);
+    const hl = hex.length;
+    const al = hl / 2;
+    if (hl % 2)
+        throw new Error('hex string expected, got unpadded hex of length ' + hl);
+    const array = new Uint8Array(al);
+    for (let ai = 0, hi = 0; ai < al; ai++, hi += 2) {
+        const n1 = asciiToBase16(hex.charCodeAt(hi));
+        const n2 = asciiToBase16(hex.charCodeAt(hi + 1));
+        if (n1 === undefined || n2 === undefined) {
+            const char = hex[hi] + hex[hi + 1];
+            throw new Error('hex string expected, got non-hex character "' + char + '" at index ' + hi);
+        }
+        array[ai] = n1 * 16 + n2; // multiply first octet, e.g. 'a3' => 10*16+3 => 160 + 3 => 163
+    }
+    return array;
+}
+// BE: Big Endian, LE: Little Endian
+function bytesToNumberBE(bytes) {
+    return hexToNumber(bytesToHex(bytes));
+}
+function bytesToNumberLE(bytes) {
+    abytes(bytes);
+    return hexToNumber(bytesToHex(Uint8Array.from(bytes).reverse()));
+}
+function numberToBytesBE(n, len) {
+    return hexToBytes(n.toString(16).padStart(len * 2, '0'));
+}
+function numberToBytesLE(n, len) {
+    return numberToBytesBE(n, len).reverse();
+}
+// Unpadded, rarely used
+function numberToVarBytesBE(n) {
+    return hexToBytes(numberToHexUnpadded(n));
+}
+/**
+ * Takes hex string or Uint8Array, converts to Uint8Array.
+ * Validates output length.
+ * Will throw error for other types.
+ * @param title descriptive title for an error e.g. 'private key'
+ * @param hex hex string or Uint8Array
+ * @param expectedLength optional, will compare to result array's length
+ * @returns
+ */
+function ensureBytes(title, hex, expectedLength) {
+    let res;
+    if (typeof hex === 'string') {
+        try {
+            res = hexToBytes(hex);
+        }
+        catch (e) {
+            throw new Error(title + ' must be hex string or Uint8Array, cause: ' + e);
+        }
+    }
+    else if (isBytes(hex)) {
+        // Uint8Array.from() instead of hash.slice() because node.js Buffer
+        // is instance of Uint8Array, and its slice() creates **mutable** copy
+        res = Uint8Array.from(hex);
+    }
+    else {
+        throw new Error(title + ' must be hex string or Uint8Array');
+    }
+    const len = res.length;
+    if (typeof expectedLength === 'number' && len !== expectedLength)
+        throw new Error(title + ' of length ' + expectedLength + ' expected, got ' + len);
+    return res;
+}
+/**
+ * Copies several Uint8Arrays into one.
+ */
+function concatBytes(...arrays) {
+    let sum = 0;
+    for (let i = 0; i < arrays.length; i++) {
+        const a = arrays[i];
+        abytes(a);
+        sum += a.length;
+    }
+    const res = new Uint8Array(sum);
+    for (let i = 0, pad = 0; i < arrays.length; i++) {
+        const a = arrays[i];
+        res.set(a, pad);
+        pad += a.length;
+    }
+    return res;
+}
+// Compares 2 u8a-s in kinda constant time
+function equalBytes(a, b) {
+    if (a.length !== b.length)
+        return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++)
+        diff |= a[i] ^ b[i];
+    return diff === 0;
+}
+/**
+ * @example utf8ToBytes('abc') // new Uint8Array([97, 98, 99])
+ */
+function utf8ToBytes(str) {
+    if (typeof str !== 'string')
+        throw new Error('string expected');
+    return new Uint8Array(new TextEncoder().encode(str)); // https://bugzil.la/1681809
+}
+// Is positive bigint
+const isPosBig = (n) => typeof n === 'bigint' && _0n <= n;
+function inRange(n, min, max) {
+    return isPosBig(n) && isPosBig(min) && isPosBig(max) && min <= n && n < max;
+}
+/**
+ * Asserts min <= n < max. NOTE: It's < max and not <= max.
+ * @example
+ * aInRange('x', x, 1n, 256n); // would assume x is in (1n..255n)
+ */
+function aInRange(title, n, min, max) {
+    // Why min <= n < max and not a (min < n < max) OR b (min <= n <= max)?
+    // consider P=256n, min=0n, max=P
+    // - a for min=0 would require -1:          `inRange('x', x, -1n, P)`
+    // - b would commonly require subtraction:  `inRange('x', x, 0n, P - 1n)`
+    // - our way is the cleanest:               `inRange('x', x, 0n, P)
+    if (!inRange(n, min, max))
+        throw new Error('expected valid ' + title + ': ' + min + ' <= n < ' + max + ', got ' + n);
+}
+// Bit operations
+/**
+ * Calculates amount of bits in a bigint.
+ * Same as `n.toString(2).length`
+ */
+function bitLen(n) {
+    let len;
+    for (len = 0; n > _0n; n >>= _1n, len += 1)
+        ;
+    return len;
+}
+/**
+ * Gets single bit at position.
+ * NOTE: first bit position is 0 (same as arrays)
+ * Same as `!!+Array.from(n.toString(2)).reverse()[pos]`
+ */
+function bitGet(n, pos) {
+    return (n >> BigInt(pos)) & _1n;
+}
+/**
+ * Sets single bit at position.
+ */
+function bitSet(n, pos, value) {
+    return n | ((value ? _1n : _0n) << BigInt(pos));
+}
+/**
+ * Calculate mask for N bits. Not using ** operator with bigints because of old engines.
+ * Same as BigInt(`0b${Array(i).fill('1').join('')}`)
+ */
+const bitMask = (n) => (_2n << BigInt(n - 1)) - _1n;
+// DRBG
+const u8n = (data) => new Uint8Array(data); // creates Uint8Array
+const u8fr = (arr) => Uint8Array.from(arr); // another shortcut
+/**
+ * Minimal HMAC-DRBG from NIST 800-90 for RFC6979 sigs.
+ * @returns function that will call DRBG until 2nd arg returns something meaningful
+ * @example
+ *   const drbg = createHmacDRBG<Key>(32, 32, hmac);
+ *   drbg(seed, bytesToKey); // bytesToKey must return Key or undefined
+ */
+function createHmacDrbg(hashLen, qByteLen, hmacFn) {
+    if (typeof hashLen !== 'number' || hashLen < 2)
+        throw new Error('hashLen must be a number');
+    if (typeof qByteLen !== 'number' || qByteLen < 2)
+        throw new Error('qByteLen must be a number');
+    if (typeof hmacFn !== 'function')
+        throw new Error('hmacFn must be a function');
+    // Step B, Step C: set hashLen to 8*ceil(hlen/8)
+    let v = u8n(hashLen); // Minimal non-full-spec HMAC-DRBG from NIST 800-90 for RFC6979 sigs.
+    let k = u8n(hashLen); // Steps B and C of RFC6979 3.2: set hashLen, in our case always same
+    let i = 0; // Iterations counter, will throw when over 1000
+    const reset = () => {
+        v.fill(1);
+        k.fill(0);
+        i = 0;
+    };
+    const h = (...b) => hmacFn(k, v, ...b); // hmac(k)(v, ...values)
+    const reseed = (seed = u8n()) => {
+        // HMAC-DRBG reseed() function. Steps D-G
+        k = h(u8fr([0x00]), seed); // k = hmac(k || v || 0x00 || seed)
+        v = h(); // v = hmac(k || v)
+        if (seed.length === 0)
+            return;
+        k = h(u8fr([0x01]), seed); // k = hmac(k || v || 0x01 || seed)
+        v = h(); // v = hmac(k || v)
+    };
+    const gen = () => {
+        // HMAC-DRBG generate() function
+        if (i++ >= 1000)
+            throw new Error('drbg: tried 1000 values');
+        let len = 0;
+        const out = [];
+        while (len < qByteLen) {
+            v = h();
+            const sl = v.slice();
+            out.push(sl);
+            len += v.length;
+        }
+        return concatBytes(...out);
+    };
+    const genUntil = (seed, pred) => {
+        reset();
+        reseed(seed); // Steps D-G
+        let res = undefined; // Step H: grind until k is in [1..n-1]
+        while (!(res = pred(gen())))
+            reseed();
+        reset();
+        return res;
+    };
+    return genUntil;
+}
+// Validating curves and fields
+const validatorFns = {
+    bigint: (val) => typeof val === 'bigint',
+    function: (val) => typeof val === 'function',
+    boolean: (val) => typeof val === 'boolean',
+    string: (val) => typeof val === 'string',
+    stringOrUint8Array: (val) => typeof val === 'string' || isBytes(val),
+    isSafeInteger: (val) => Number.isSafeInteger(val),
+    array: (val) => Array.isArray(val),
+    field: (val, object) => object.Fp.isValid(val),
+    hash: (val) => typeof val === 'function' && Number.isSafeInteger(val.outputLen),
+};
+// type Record<K extends string | number | symbol, T> = { [P in K]: T; }
+function validateObject(object, validators, optValidators = {}) {
+    const checkField = (fieldName, type, isOptional) => {
+        const checkVal = validatorFns[type];
+        if (typeof checkVal !== 'function')
+            throw new Error('invalid validator function');
+        const val = object[fieldName];
+        if (isOptional && val === undefined)
+            return;
+        if (!checkVal(val, object)) {
+            throw new Error('param ' + String(fieldName) + ' is invalid. Expected ' + type + ', got ' + val);
+        }
+    };
+    for (const [fieldName, type] of Object.entries(validators))
+        checkField(fieldName, type, false);
+    for (const [fieldName, type] of Object.entries(optValidators))
+        checkField(fieldName, type, true);
+    return object;
+}
+// validate type tests
+// const o: { a: number; b: number; c: number } = { a: 1, b: 5, c: 6 };
+// const z0 = validateObject(o, { a: 'isSafeInteger' }, { c: 'bigint' }); // Ok!
+// // Should fail type-check
+// const z1 = validateObject(o, { a: 'tmp' }, { c: 'zz' });
+// const z2 = validateObject(o, { a: 'isSafeInteger' }, { c: 'zz' });
+// const z3 = validateObject(o, { test: 'boolean', z: 'bug' });
+// const z4 = validateObject(o, { a: 'boolean', z: 'bug' });
+/**
+ * throws not implemented error
+ */
+const notImplemented = () => {
+    throw new Error('not implemented');
+};
+/**
+ * Memoizes (caches) computation result.
+ * Uses WeakMap: the value is going auto-cleaned by GC after last reference is removed.
+ */
+function memoized(fn) {
+    const map = new WeakMap();
+    return (arg, ...args) => {
+        const val = map.get(arg);
+        if (val !== undefined)
+            return val;
+        const computed = fn(arg, ...args);
+        map.set(arg, computed);
+        return computed;
+    };
+}
+//# sourceMappingURL=utils.js.map
+
+/***/ }),
+
 /***/ 4355:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
@@ -30970,35 +31342,40 @@ module.exports = parseParams
 /* harmony export */ });
 /* unused harmony export anumber */
 /**
- * Assertion helpers
+ * Internal assertion helpers.
  * @module
  */
+/** Asserts something is positive integer. */
 function anumber(n) {
     if (!Number.isSafeInteger(n) || n < 0)
         throw new Error('positive integer expected, got ' + n);
 }
-// copied from utils
+/** Is number an Uint8Array? Copied from utils for perf. */
 function isBytes(a) {
     return a instanceof Uint8Array || (ArrayBuffer.isView(a) && a.constructor.name === 'Uint8Array');
 }
+/** Asserts something is Uint8Array. */
 function abytes(b, ...lengths) {
     if (!isBytes(b))
         throw new Error('Uint8Array expected');
     if (lengths.length > 0 && !lengths.includes(b.length))
         throw new Error('Uint8Array expected of length ' + lengths + ', got length=' + b.length);
 }
+/** Asserts something is hash */
 function ahash(h) {
     if (typeof h !== 'function' || typeof h.create !== 'function')
         throw new Error('Hash should be wrapped by utils.wrapConstructor');
     anumber(h.outputLen);
     anumber(h.blockLen);
 }
+/** Asserts a hash instance has not been destroyed / finished */
 function aexists(instance, checkFinished = true) {
     if (instance.destroyed)
         throw new Error('Hash instance has been destroyed');
     if (checkFinished && instance.finished)
         throw new Error('Hash#digest() has already been called');
 }
+/** Asserts output is properly-sized byte array */
 function aoutput(out, instance) {
     abytes(out);
     const min = instance.outputLen;
@@ -31028,15 +31405,13 @@ var _assert = __nccwpck_require__(4355);
 // EXTERNAL MODULE: ./node_modules/@noble/hashes/esm/utils.js + 1 modules
 var utils = __nccwpck_require__(2769);
 ;// CONCATENATED MODULE: ./node_modules/@noble/hashes/esm/_md.js
-
-
 /**
- * Merkle-Damgard hash utils.
+ * Internal Merkle-Damgard hash utils.
  * @module
  */
-/**
- * Polyfill for Safari 14
- */
+
+
+/** Polyfill for Safari 14. https://caniuse.com/mdn-javascript_builtins_dataview_setbiguint64 */
 function setBigUint64(view, byteOffset, value, isLE) {
     if (typeof view.setBigUint64 === 'function')
         return view.setBigUint64(byteOffset, value, isLE);
@@ -31049,14 +31424,14 @@ function setBigUint64(view, byteOffset, value, isLE) {
     view.setUint32(byteOffset + h, wh, isLE);
     view.setUint32(byteOffset + l, wl, isLE);
 }
-/**
- * Choice: a ? b : c
- */
-const Chi = (a, b, c) => (a & b) ^ (~a & c);
-/**
- * Majority function, true if any two inputs is true
- */
-const Maj = (a, b, c) => (a & b) ^ (a & c) ^ (b & c);
+/** Choice: a ? b : c */
+function Chi(a, b, c) {
+    return (a & b) ^ (~a & c);
+}
+/** Majority function, true if any two inputs is true. */
+function Maj(a, b, c) {
+    return (a & b) ^ (a & c) ^ (b & c);
+}
 /**
  * Merkle-Damgard hash construction base class.
  * Could be used to create MD5, RIPEMD, SHA1, SHA2.
@@ -31161,8 +31536,6 @@ class HashMD extends utils/* Hash */.Vw {
 }
 //# sourceMappingURL=_md.js.map
 ;// CONCATENATED MODULE: ./node_modules/@noble/hashes/esm/sha256.js
-
-
 /**
  * SHA2-256 a.k.a. sha256. In JS, it is the fastest hash, even faster than Blake3.
  *
@@ -31172,6 +31545,8 @@ class HashMD extends utils/* Hash */.Vw {
  * Check out [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf).
  * @module
  */
+
+
 /** Round constants: first 32 bits of fractional parts of the cube roots of the first 64 primes 2..311). */
 // prettier-ignore
 const SHA256_K = /* @__PURE__ */ new Uint32Array([
@@ -31318,9 +31693,13 @@ __nccwpck_require__.d(__webpack_exports__, {
 var external_node_crypto_ = __nccwpck_require__(7598);
 var external_node_crypto_namespaceObject = /*#__PURE__*/__nccwpck_require__.t(external_node_crypto_, 2);
 ;// CONCATENATED MODULE: ./node_modules/@noble/hashes/esm/cryptoNode.js
-// We prefer WebCrypto aka globalThis.crypto, which exists in node.js 16+.
-// Falls back to Node.js built-in crypto for Node.js <=v14
-// See utils.ts for details.
+/**
+ * Internal webcrypto alias.
+ * We prefer WebCrypto aka globalThis.crypto, which exists in node.js 16+.
+ * Falls back to Node.js built-in crypto for Node.js <=v14.
+ * See utils.ts for details.
+ * @module
+ */
 // @ts-ignore
 
 const cryptoNode_crypto = external_node_crypto_namespaceObject && typeof external_node_crypto_namespaceObject === 'object' && "webcrypto" in external_node_crypto_namespaceObject
@@ -31332,11 +31711,11 @@ const cryptoNode_crypto = external_node_crypto_namespaceObject && typeof externa
 // EXTERNAL MODULE: ./node_modules/@noble/hashes/esm/_assert.js
 var _assert = __nccwpck_require__(4355);
 ;// CONCATENATED MODULE: ./node_modules/@noble/hashes/esm/utils.js
-/*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 /**
  * Utilities for hex, bytes, CSPRNG.
  * @module
  */
+/*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 // We use WebCrypto aka globalThis.crypto, which exists in browsers and node.js 16+.
 // node.js versions earlier than v19 don't declare it in global scope.
 // For node.js, package.json#exports field mapping rewrites import
@@ -31351,21 +31730,33 @@ function isBytes(a) {
     return a instanceof Uint8Array || (ArrayBuffer.isView(a) && a.constructor.name === 'Uint8Array');
 }
 // Cast array to different type
-const u8 = (arr) => new Uint8Array(arr.buffer, arr.byteOffset, arr.byteLength);
-const u32 = (arr) => new Uint32Array(arr.buffer, arr.byteOffset, Math.floor(arr.byteLength / 4));
+function u8(arr) {
+    return new Uint8Array(arr.buffer, arr.byteOffset, arr.byteLength);
+}
+function u32(arr) {
+    return new Uint32Array(arr.buffer, arr.byteOffset, Math.floor(arr.byteLength / 4));
+}
 // Cast array to view
-const createView = (arr) => new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
+function createView(arr) {
+    return new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
+}
 /** The rotate right (circular right shift) operation for uint32 */
-const rotr = (word, shift) => (word << (32 - shift)) | (word >>> shift);
+function rotr(word, shift) {
+    return (word << (32 - shift)) | (word >>> shift);
+}
 /** The rotate left (circular left shift) operation for uint32 */
-const rotl = (word, shift) => (word << shift) | ((word >>> (32 - shift)) >>> 0);
+function rotl(word, shift) {
+    return (word << shift) | ((word >>> (32 - shift)) >>> 0);
+}
 /** Is current platform little-endian? Most are. Big-Endian platform: IBM */
 const isLE = /* @__PURE__ */ (/* unused pure expression or super */ null && ((() => new Uint8Array(new Uint32Array([0x11223344]).buffer)[0] === 0x44)()));
 // The byte swap operation for uint32
-const byteSwap = (word) => ((word << 24) & 0xff000000) |
-    ((word << 8) & 0xff0000) |
-    ((word >>> 8) & 0xff00) |
-    ((word >>> 24) & 0xff);
+function byteSwap(word) {
+    return (((word << 24) & 0xff000000) |
+        ((word << 8) & 0xff0000) |
+        ((word >>> 8) & 0xff00) |
+        ((word >>> 24) & 0xff));
+}
 /** Conditionally byte swap if on a big-endian platform */
 const byteSwapIfBE = (/* unused pure expression or super */ null && (isLE
     ? (n) => n
@@ -31425,11 +31816,13 @@ function hexToBytes(hex) {
     }
     return array;
 }
-// There is no setImmediate in browser and setTimeout is slow.
-// call of async fn will return Promise, which will be fullfiled only on
-// next scheduler queue processing step and this is exactly what we need.
+/**
+ * There is no setImmediate in browser and setTimeout is slow.
+ * Call of async fn will return Promise, which will be fullfiled only on
+ * next scheduler queue processing step and this is exactly what we need.
+ */
 const nextTick = async () => { };
-// Returns control to thread each 'tick' ms to avoid blocking
+/** Returns control to thread each 'tick' ms to avoid blocking. */
 async function asyncLoop(iters, tick, cb) {
     let ts = Date.now();
     for (let i = 0; i < iters; i++) {
@@ -31480,7 +31873,7 @@ function concatBytes(...arrays) {
     }
     return res;
 }
-// For runtime check if class implements interface
+/** For runtime check if class implements interface */
 class Hash {
     // Safe version that clones internal state
     clone() {
@@ -31493,6 +31886,7 @@ function checkOpts(defaults, opts) {
     const merged = Object.assign(defaults, opts);
     return merged;
 }
+/** Wraps hash function, creating an interface on top of it */
 function wrapConstructor(hashCons) {
     const hashC = (msg) => hashCons().update(toBytes(msg)).digest();
     const tmp = hashCons();
@@ -31517,9 +31911,7 @@ function wrapXOFConstructorWithOpts(hashCons) {
     hashC.create = (opts) => hashCons(opts);
     return hashC;
 }
-/**
- * Secure PRNG. Uses `crypto.getRandomValues`, which defers to OS.
- */
+/** Cryptographically secure PRNG. Uses internal OS-level `crypto.getRandomValues`. */
 function randomBytes(bytesLength = 32) {
     if (cryptoNode_crypto && typeof cryptoNode_crypto.getRandomValues === 'function') {
         return cryptoNode_crypto.getRandomValues(new Uint8Array(bytesLength));
@@ -31717,31 +32109,6 @@ __nccwpck_require__.d(abstract_utils_namespaceObject, {
   lq: () => (numberToBytesBE),
   z: () => (numberToBytesLE),
   Q5: () => (validateObject)
-});
-
-// NAMESPACE OBJECT: ./node_modules/@noble/curves/esm/abstract/utils.js
-var esm_abstract_utils_namespaceObject = {};
-__nccwpck_require__.r(esm_abstract_utils_namespaceObject);
-__nccwpck_require__.d(esm_abstract_utils_namespaceObject, {
-  aK: () => (aInRange),
-  e8: () => (abool),
-  DO: () => (utils_abytes),
-  dJ: () => (utils_bitLen),
-  OG: () => (utils_bitMask),
-  My: () => (abstract_utils_bytesToHex),
-  Ph: () => (abstract_utils_bytesToNumberBE),
-  lX: () => (abstract_utils_bytesToNumberLE),
-  Id: () => (abstract_utils_concatBytes),
-  fg: () => (utils_createHmacDrbg),
-  qj: () => (abstract_utils_ensureBytes),
-  aT: () => (abstract_utils_hexToBytes),
-  r4: () => (inRange),
-  aY: () => (utils_isBytes),
-  x: () => (memoized),
-  lq: () => (abstract_utils_numberToBytesBE),
-  z: () => (utils_numberToBytesLE),
-  zW: () => (utils_numberToHexUnpadded),
-  Q5: () => (utils_validateObject)
 });
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
@@ -32665,7 +33032,7 @@ const FIELD_FIELDS = [
     'eql', 'add', 'sub', 'mul', 'pow', 'div',
     'addN', 'subN', 'mulN', 'sqrN'
 ];
-function validateField(field) {
+function modular_validateField(field) {
     const initial = {
         ORDER: 'bigint',
         MASK: 'bigint',
@@ -33099,7 +33466,7 @@ function wNAF(c, bits) {
     };
 }
 function validateBasic(curve) {
-    validateField(curve.Fp);
+    modular_validateField(curve.Fp);
     validateObject(curve, {
         n: 'bigint',
         h: 'bigint',
@@ -39694,12 +40061,12 @@ var esm_utils = __nccwpck_require__(2769);
 // EXTERNAL MODULE: ./node_modules/@noble/hashes/esm/_assert.js
 var hashes_esm_assert = __nccwpck_require__(4355);
 ;// CONCATENATED MODULE: ./node_modules/@noble/hashes/esm/hmac.js
-
-
 /**
  * HMAC: RFC2104 message authentication code.
  * @module
  */
+
+
 class esm_hmac_HMAC extends esm_utils/* Hash */.Vw {
     constructor(hash, _key) {
         super();
@@ -39778,342 +40145,8 @@ class esm_hmac_HMAC extends esm_utils/* Hash */.Vw {
 const esm_hmac_hmac = (hash, key, message) => new esm_hmac_HMAC(hash, key).update(message).digest();
 esm_hmac_hmac.create = (hash, key) => new esm_hmac_HMAC(hash, key);
 //# sourceMappingURL=hmac.js.map
-;// CONCATENATED MODULE: ./node_modules/@noble/curves/esm/abstract/utils.js
-/**
- * Hex, bytes and number utilities.
- * @module
- */
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-// 100 lines of code in the file are duplicated from noble-hashes (utils).
-// This is OK: `abstract` directory does not use noble-hashes.
-// User may opt-in into using different hashing library. This way, noble-hashes
-// won't be included into their bundle.
-const utils_0n = /* @__PURE__ */ BigInt(0);
-const utils_1n = /* @__PURE__ */ BigInt(1);
-const utils_2n = /* @__PURE__ */ BigInt(2);
-function utils_isBytes(a) {
-    return a instanceof Uint8Array || (ArrayBuffer.isView(a) && a.constructor.name === 'Uint8Array');
-}
-function utils_abytes(item) {
-    if (!utils_isBytes(item))
-        throw new Error('Uint8Array expected');
-}
-function abool(title, value) {
-    if (typeof value !== 'boolean')
-        throw new Error(title + ' boolean expected, got ' + value);
-}
-// Array where index 0xf0 (240) is mapped to string 'f0'
-const abstract_utils_hexes = /* @__PURE__ */ Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, '0'));
-/**
- * @example bytesToHex(Uint8Array.from([0xca, 0xfe, 0x01, 0x23])) // 'cafe0123'
- */
-function abstract_utils_bytesToHex(bytes) {
-    utils_abytes(bytes);
-    // pre-caching improves the speed 6x
-    let hex = '';
-    for (let i = 0; i < bytes.length; i++) {
-        hex += abstract_utils_hexes[bytes[i]];
-    }
-    return hex;
-}
-function utils_numberToHexUnpadded(num) {
-    const hex = num.toString(16);
-    return hex.length & 1 ? '0' + hex : hex;
-}
-function abstract_utils_hexToNumber(hex) {
-    if (typeof hex !== 'string')
-        throw new Error('hex string expected, got ' + typeof hex);
-    return hex === '' ? utils_0n : BigInt('0x' + hex); // Big Endian
-}
-// We use optimized technique to convert hex string to byte array
-const utils_asciis = { _0: 48, _9: 57, A: 65, F: 70, a: 97, f: 102 };
-function utils_asciiToBase16(ch) {
-    if (ch >= utils_asciis._0 && ch <= utils_asciis._9)
-        return ch - utils_asciis._0; // '2' => 50-48
-    if (ch >= utils_asciis.A && ch <= utils_asciis.F)
-        return ch - (utils_asciis.A - 10); // 'B' => 66-(65-10)
-    if (ch >= utils_asciis.a && ch <= utils_asciis.f)
-        return ch - (utils_asciis.a - 10); // 'b' => 98-(97-10)
-    return;
-}
-/**
- * @example hexToBytes('cafe0123') // Uint8Array.from([0xca, 0xfe, 0x01, 0x23])
- */
-function abstract_utils_hexToBytes(hex) {
-    if (typeof hex !== 'string')
-        throw new Error('hex string expected, got ' + typeof hex);
-    const hl = hex.length;
-    const al = hl / 2;
-    if (hl % 2)
-        throw new Error('hex string expected, got unpadded hex of length ' + hl);
-    const array = new Uint8Array(al);
-    for (let ai = 0, hi = 0; ai < al; ai++, hi += 2) {
-        const n1 = utils_asciiToBase16(hex.charCodeAt(hi));
-        const n2 = utils_asciiToBase16(hex.charCodeAt(hi + 1));
-        if (n1 === undefined || n2 === undefined) {
-            const char = hex[hi] + hex[hi + 1];
-            throw new Error('hex string expected, got non-hex character "' + char + '" at index ' + hi);
-        }
-        array[ai] = n1 * 16 + n2; // multiply first octet, e.g. 'a3' => 10*16+3 => 160 + 3 => 163
-    }
-    return array;
-}
-// BE: Big Endian, LE: Little Endian
-function abstract_utils_bytesToNumberBE(bytes) {
-    return abstract_utils_hexToNumber(abstract_utils_bytesToHex(bytes));
-}
-function abstract_utils_bytesToNumberLE(bytes) {
-    utils_abytes(bytes);
-    return abstract_utils_hexToNumber(abstract_utils_bytesToHex(Uint8Array.from(bytes).reverse()));
-}
-function abstract_utils_numberToBytesBE(n, len) {
-    return abstract_utils_hexToBytes(n.toString(16).padStart(len * 2, '0'));
-}
-function utils_numberToBytesLE(n, len) {
-    return abstract_utils_numberToBytesBE(n, len).reverse();
-}
-// Unpadded, rarely used
-function utils_numberToVarBytesBE(n) {
-    return abstract_utils_hexToBytes(utils_numberToHexUnpadded(n));
-}
-/**
- * Takes hex string or Uint8Array, converts to Uint8Array.
- * Validates output length.
- * Will throw error for other types.
- * @param title descriptive title for an error e.g. 'private key'
- * @param hex hex string or Uint8Array
- * @param expectedLength optional, will compare to result array's length
- * @returns
- */
-function abstract_utils_ensureBytes(title, hex, expectedLength) {
-    let res;
-    if (typeof hex === 'string') {
-        try {
-            res = abstract_utils_hexToBytes(hex);
-        }
-        catch (e) {
-            throw new Error(title + ' must be hex string or Uint8Array, cause: ' + e);
-        }
-    }
-    else if (utils_isBytes(hex)) {
-        // Uint8Array.from() instead of hash.slice() because node.js Buffer
-        // is instance of Uint8Array, and its slice() creates **mutable** copy
-        res = Uint8Array.from(hex);
-    }
-    else {
-        throw new Error(title + ' must be hex string or Uint8Array');
-    }
-    const len = res.length;
-    if (typeof expectedLength === 'number' && len !== expectedLength)
-        throw new Error(title + ' of length ' + expectedLength + ' expected, got ' + len);
-    return res;
-}
-/**
- * Copies several Uint8Arrays into one.
- */
-function abstract_utils_concatBytes(...arrays) {
-    let sum = 0;
-    for (let i = 0; i < arrays.length; i++) {
-        const a = arrays[i];
-        utils_abytes(a);
-        sum += a.length;
-    }
-    const res = new Uint8Array(sum);
-    for (let i = 0, pad = 0; i < arrays.length; i++) {
-        const a = arrays[i];
-        res.set(a, pad);
-        pad += a.length;
-    }
-    return res;
-}
-// Compares 2 u8a-s in kinda constant time
-function abstract_utils_equalBytes(a, b) {
-    if (a.length !== b.length)
-        return false;
-    let diff = 0;
-    for (let i = 0; i < a.length; i++)
-        diff |= a[i] ^ b[i];
-    return diff === 0;
-}
-/**
- * @example utf8ToBytes('abc') // new Uint8Array([97, 98, 99])
- */
-function abstract_utils_utf8ToBytes(str) {
-    if (typeof str !== 'string')
-        throw new Error('string expected');
-    return new Uint8Array(new TextEncoder().encode(str)); // https://bugzil.la/1681809
-}
-// Is positive bigint
-const isPosBig = (n) => typeof n === 'bigint' && utils_0n <= n;
-function inRange(n, min, max) {
-    return isPosBig(n) && isPosBig(min) && isPosBig(max) && min <= n && n < max;
-}
-/**
- * Asserts min <= n < max. NOTE: It's < max and not <= max.
- * @example
- * aInRange('x', x, 1n, 256n); // would assume x is in (1n..255n)
- */
-function aInRange(title, n, min, max) {
-    // Why min <= n < max and not a (min < n < max) OR b (min <= n <= max)?
-    // consider P=256n, min=0n, max=P
-    // - a for min=0 would require -1:          `inRange('x', x, -1n, P)`
-    // - b would commonly require subtraction:  `inRange('x', x, 0n, P - 1n)`
-    // - our way is the cleanest:               `inRange('x', x, 0n, P)
-    if (!inRange(n, min, max))
-        throw new Error('expected valid ' + title + ': ' + min + ' <= n < ' + max + ', got ' + n);
-}
-// Bit operations
-/**
- * Calculates amount of bits in a bigint.
- * Same as `n.toString(2).length`
- */
-function utils_bitLen(n) {
-    let len;
-    for (len = 0; n > utils_0n; n >>= utils_1n, len += 1)
-        ;
-    return len;
-}
-/**
- * Gets single bit at position.
- * NOTE: first bit position is 0 (same as arrays)
- * Same as `!!+Array.from(n.toString(2)).reverse()[pos]`
- */
-function utils_bitGet(n, pos) {
-    return (n >> BigInt(pos)) & utils_1n;
-}
-/**
- * Sets single bit at position.
- */
-function utils_bitSet(n, pos, value) {
-    return n | ((value ? utils_1n : utils_0n) << BigInt(pos));
-}
-/**
- * Calculate mask for N bits. Not using ** operator with bigints because of old engines.
- * Same as BigInt(`0b${Array(i).fill('1').join('')}`)
- */
-const utils_bitMask = (n) => (utils_2n << BigInt(n - 1)) - utils_1n;
-// DRBG
-const utils_u8n = (data) => new Uint8Array(data); // creates Uint8Array
-const utils_u8fr = (arr) => Uint8Array.from(arr); // another shortcut
-/**
- * Minimal HMAC-DRBG from NIST 800-90 for RFC6979 sigs.
- * @returns function that will call DRBG until 2nd arg returns something meaningful
- * @example
- *   const drbg = createHmacDRBG<Key>(32, 32, hmac);
- *   drbg(seed, bytesToKey); // bytesToKey must return Key or undefined
- */
-function utils_createHmacDrbg(hashLen, qByteLen, hmacFn) {
-    if (typeof hashLen !== 'number' || hashLen < 2)
-        throw new Error('hashLen must be a number');
-    if (typeof qByteLen !== 'number' || qByteLen < 2)
-        throw new Error('qByteLen must be a number');
-    if (typeof hmacFn !== 'function')
-        throw new Error('hmacFn must be a function');
-    // Step B, Step C: set hashLen to 8*ceil(hlen/8)
-    let v = utils_u8n(hashLen); // Minimal non-full-spec HMAC-DRBG from NIST 800-90 for RFC6979 sigs.
-    let k = utils_u8n(hashLen); // Steps B and C of RFC6979 3.2: set hashLen, in our case always same
-    let i = 0; // Iterations counter, will throw when over 1000
-    const reset = () => {
-        v.fill(1);
-        k.fill(0);
-        i = 0;
-    };
-    const h = (...b) => hmacFn(k, v, ...b); // hmac(k)(v, ...values)
-    const reseed = (seed = utils_u8n()) => {
-        // HMAC-DRBG reseed() function. Steps D-G
-        k = h(utils_u8fr([0x00]), seed); // k = hmac(k || v || 0x00 || seed)
-        v = h(); // v = hmac(k || v)
-        if (seed.length === 0)
-            return;
-        k = h(utils_u8fr([0x01]), seed); // k = hmac(k || v || 0x01 || seed)
-        v = h(); // v = hmac(k || v)
-    };
-    const gen = () => {
-        // HMAC-DRBG generate() function
-        if (i++ >= 1000)
-            throw new Error('drbg: tried 1000 values');
-        let len = 0;
-        const out = [];
-        while (len < qByteLen) {
-            v = h();
-            const sl = v.slice();
-            out.push(sl);
-            len += v.length;
-        }
-        return abstract_utils_concatBytes(...out);
-    };
-    const genUntil = (seed, pred) => {
-        reset();
-        reseed(seed); // Steps D-G
-        let res = undefined; // Step H: grind until k is in [1..n-1]
-        while (!(res = pred(gen())))
-            reseed();
-        reset();
-        return res;
-    };
-    return genUntil;
-}
-// Validating curves and fields
-const utils_validatorFns = {
-    bigint: (val) => typeof val === 'bigint',
-    function: (val) => typeof val === 'function',
-    boolean: (val) => typeof val === 'boolean',
-    string: (val) => typeof val === 'string',
-    stringOrUint8Array: (val) => typeof val === 'string' || utils_isBytes(val),
-    isSafeInteger: (val) => Number.isSafeInteger(val),
-    array: (val) => Array.isArray(val),
-    field: (val, object) => object.Fp.isValid(val),
-    hash: (val) => typeof val === 'function' && Number.isSafeInteger(val.outputLen),
-};
-// type Record<K extends string | number | symbol, T> = { [P in K]: T; }
-function utils_validateObject(object, validators, optValidators = {}) {
-    const checkField = (fieldName, type, isOptional) => {
-        const checkVal = utils_validatorFns[type];
-        if (typeof checkVal !== 'function')
-            throw new Error('invalid validator function');
-        const val = object[fieldName];
-        if (isOptional && val === undefined)
-            return;
-        if (!checkVal(val, object)) {
-            throw new Error('param ' + String(fieldName) + ' is invalid. Expected ' + type + ', got ' + val);
-        }
-    };
-    for (const [fieldName, type] of Object.entries(validators))
-        checkField(fieldName, type, false);
-    for (const [fieldName, type] of Object.entries(optValidators))
-        checkField(fieldName, type, true);
-    return object;
-}
-// validate type tests
-// const o: { a: number; b: number; c: number } = { a: 1, b: 5, c: 6 };
-// const z0 = validateObject(o, { a: 'isSafeInteger' }, { c: 'bigint' }); // Ok!
-// // Should fail type-check
-// const z1 = validateObject(o, { a: 'tmp' }, { c: 'zz' });
-// const z2 = validateObject(o, { a: 'isSafeInteger' }, { c: 'zz' });
-// const z3 = validateObject(o, { test: 'boolean', z: 'bug' });
-// const z4 = validateObject(o, { a: 'boolean', z: 'bug' });
-/**
- * throws not implemented error
- */
-const notImplemented = () => {
-    throw new Error('not implemented');
-};
-/**
- * Memoizes (caches) computation result.
- * Uses WeakMap: the value is going auto-cleaned by GC after last reference is removed.
- */
-function memoized(fn) {
-    const map = new WeakMap();
-    return (arg, ...args) => {
-        const val = map.get(arg);
-        if (val !== undefined)
-            return val;
-        const computed = fn(arg, ...args);
-        map.set(arg, computed);
-        return computed;
-    };
-}
-//# sourceMappingURL=utils.js.map
+// EXTERNAL MODULE: ./node_modules/@noble/curves/esm/abstract/utils.js
+var abstract_utils = __nccwpck_require__(3286);
 ;// CONCATENATED MODULE: ./node_modules/@noble/curves/esm/abstract/modular.js
 /**
  * Utils for modular division and finite fields.
@@ -40336,7 +40369,7 @@ const modular_FIELD_FIELDS = [
     'eql', 'add', 'sub', 'mul', 'pow', 'div',
     'addN', 'subN', 'mulN', 'sqrN'
 ];
-function modular_validateField(field) {
+function abstract_modular_validateField(field) {
     const initial = {
         ORDER: 'bigint',
         MASK: 'bigint',
@@ -40347,7 +40380,7 @@ function modular_validateField(field) {
         map[val] = 'function';
         return map;
     }, initial);
-    return utils_validateObject(field, opts);
+    return (0,abstract_utils/* validateObject */.Q5)(field, opts);
 }
 // Generic field functions
 /**
@@ -40452,7 +40485,7 @@ function modular_Field(ORDER, bitLen, isLE = false, redef = {}) {
         isLE,
         BITS,
         BYTES,
-        MASK: utils_bitMask(BITS),
+        MASK: (0,abstract_utils/* bitMask */.OG)(BITS),
         ZERO: abstract_modular_0n,
         ONE: abstract_modular_1n,
         create: (num) => abstract_modular_mod(num, ORDER),
@@ -40487,11 +40520,11 @@ function modular_Field(ORDER, bitLen, isLE = false, redef = {}) {
         // TODO: do we really need constant cmov?
         // We don't have const-time bigints anyway, so probably will be not very useful
         cmov: (a, b, c) => (c ? b : a),
-        toBytes: (num) => (isLE ? utils_numberToBytesLE(num, BYTES) : abstract_utils_numberToBytesBE(num, BYTES)),
+        toBytes: (num) => (isLE ? (0,abstract_utils/* numberToBytesLE */.z)(num, BYTES) : (0,abstract_utils/* numberToBytesBE */.lq)(num, BYTES)),
         fromBytes: (bytes) => {
             if (bytes.length !== BYTES)
                 throw new Error('Field.fromBytes: expected ' + BYTES + ' bytes, got ' + bytes.length);
-            return isLE ? abstract_utils_bytesToNumberLE(bytes) : abstract_utils_bytesToNumberBE(bytes);
+            return isLE ? (0,abstract_utils/* bytesToNumberLE */.lX)(bytes) : (0,abstract_utils/* bytesToNumberBE */.Ph)(bytes);
         },
     });
     return Object.freeze(f);
@@ -40566,10 +40599,10 @@ function modular_mapHashToField(key, fieldOrder, isLE = false) {
     // No small numbers: need to understand bias story. No huge numbers: easier to detect JS timings.
     if (len < 16 || len < minLen || len > 1024)
         throw new Error('expected ' + minLen + '-1024 bytes of input, got ' + len);
-    const num = isLE ? abstract_utils_bytesToNumberLE(key) : abstract_utils_bytesToNumberBE(key);
+    const num = isLE ? (0,abstract_utils/* bytesToNumberLE */.lX)(key) : (0,abstract_utils/* bytesToNumberBE */.Ph)(key);
     // `mod(x, 11)` can sometimes produce 0. `mod(x, 10) + 1` is the same, but no 0
     const reduced = abstract_modular_mod(num, fieldOrder - abstract_modular_1n) + abstract_modular_1n;
-    return isLE ? utils_numberToBytesLE(reduced, fieldLen) : abstract_utils_numberToBytesBE(reduced, fieldLen);
+    return isLE ? (0,abstract_utils/* numberToBytesLE */.z)(reduced, fieldLen) : (0,abstract_utils/* numberToBytesBE */.lq)(reduced, fieldLen);
 }
 //# sourceMappingURL=modular.js.map
 ;// CONCATENATED MODULE: ./node_modules/@noble/curves/esm/abstract/curve.js
@@ -40823,7 +40856,7 @@ function pippenger(c, fieldN, points, scalars) {
     if (points.length !== scalars.length)
         throw new Error('arrays of points and scalars must have equal length');
     const zero = c.ZERO;
-    const wbits = utils_bitLen(BigInt(points.length));
+    const wbits = (0,abstract_utils/* bitLen */.dJ)(BigInt(points.length));
     const windowSize = wbits > 12 ? wbits - 3 : wbits > 4 ? wbits - 2 : wbits ? 2 : 1; // in bits
     const MASK = (1 << windowSize) - 1;
     const buckets = new Array(MASK + 1).fill(zero); // +1 for zero array
@@ -40929,8 +40962,8 @@ function precomputeMSMUnsafe(c, fieldN, points, windowSize) {
     };
 }
 function curve_validateBasic(curve) {
-    modular_validateField(curve.Fp);
-    utils_validateObject(curve, {
+    abstract_modular_validateField(curve.Fp);
+    (0,abstract_utils/* validateObject */.Q5)(curve, {
         n: 'bigint',
         h: 'bigint',
         Gx: 'field',
@@ -40981,13 +41014,13 @@ function curve_validateBasic(curve) {
 
 function validateSigVerOpts(opts) {
     if (opts.lowS !== undefined)
-        abool('lowS', opts.lowS);
+        (0,abstract_utils/* abool */.e8)('lowS', opts.lowS);
     if (opts.prehash !== undefined)
-        abool('prehash', opts.prehash);
+        (0,abstract_utils/* abool */.e8)('prehash', opts.prehash);
 }
 function weierstrass_validatePointOpts(curve) {
     const opts = curve_validateBasic(curve);
-    utils_validateObject(opts, {
+    abstract_utils/* validateObject */.Q5(opts, {
         a: 'field',
         b: 'field',
     }, {
@@ -41012,7 +41045,7 @@ function weierstrass_validatePointOpts(curve) {
     }
     return Object.freeze({ ...opts });
 }
-const { /* bytesToNumberBE */ "Ph": weierstrass_b2n, /* hexToBytes */ "aT": weierstrass_h2b } = esm_abstract_utils_namespaceObject;
+const { /* bytesToNumberBE */ "Ph": weierstrass_b2n, /* hexToBytes */ "aT": weierstrass_h2b } = abstract_utils;
 class DERErr extends Error {
     constructor(m = '') {
         super(m);
@@ -41037,12 +41070,12 @@ const weierstrass_DER = {
             if (data.length & 1)
                 throw new E('tlv.encode: unpadded data');
             const dataLen = data.length / 2;
-            const len = utils_numberToHexUnpadded(dataLen);
+            const len = abstract_utils/* numberToHexUnpadded */.zW(dataLen);
             if ((len.length / 2) & 128)
                 throw new E('tlv.encode: long form length too big');
             // length of length with long form flag
-            const lenLen = dataLen > 127 ? utils_numberToHexUnpadded((len.length / 2) | 128) : '';
-            const t = utils_numberToHexUnpadded(tag);
+            const lenLen = dataLen > 127 ? abstract_utils/* numberToHexUnpadded */.zW((len.length / 2) | 128) : '';
+            const t = abstract_utils/* numberToHexUnpadded */.zW(tag);
             return t + lenLen + len + data;
         },
         // v - value, l - left bytes (unparsed)
@@ -41091,7 +41124,7 @@ const weierstrass_DER = {
             const { Err: E } = weierstrass_DER;
             if (num < abstract_weierstrass_0n)
                 throw new E('integer: negative integers are not allowed');
-            let hex = utils_numberToHexUnpadded(num);
+            let hex = abstract_utils/* numberToHexUnpadded */.zW(num);
             // Pad with zero byte if negative flag is present
             if (Number.parseInt(hex[0], 16) & 0b1000)
                 hex = '00' + hex;
@@ -41112,7 +41145,7 @@ const weierstrass_DER = {
         // parse DER signature
         const { Err: E, _int: int, _tlv: tlv } = weierstrass_DER;
         const data = typeof hex === 'string' ? weierstrass_h2b(hex) : hex;
-        utils_abytes(data);
+        abstract_utils/* abytes */.DO(data);
         const { v: seqBytes, l: seqLeftBytes } = tlv.decode(0x30, data);
         if (seqLeftBytes.length)
             throw new E('invalid signature: left bytes after parsing');
@@ -41140,7 +41173,7 @@ function weierstrass_weierstrassPoints(opts) {
     const toBytes = CURVE.toBytes ||
         ((_c, point, _isCompressed) => {
             const a = point.toAffine();
-            return abstract_utils_concatBytes(Uint8Array.from([0x04]), Fp.toBytes(a.x), Fp.toBytes(a.y));
+            return abstract_utils/* concatBytes */.Id(Uint8Array.from([0x04]), Fp.toBytes(a.x), Fp.toBytes(a.y));
         });
     const fromBytes = CURVE.fromBytes ||
         ((bytes) => {
@@ -41169,15 +41202,15 @@ function weierstrass_weierstrassPoints(opts) {
         throw new Error('bad generator point: equation left != right');
     // Valid group elements reside in range 1..n-1
     function isWithinCurveOrder(num) {
-        return inRange(num, abstract_weierstrass_1n, CURVE.n);
+        return abstract_utils/* inRange */.r4(num, abstract_weierstrass_1n, CURVE.n);
     }
     // Validates if priv key is valid and converts it to bigint.
     // Supports options allowedPrivateKeyLengths and wrapPrivateKey.
     function normPrivateKeyToScalar(key) {
         const { allowedPrivateKeyLengths: lengths, nByteLength, wrapPrivateKey, n: N } = CURVE;
         if (lengths && typeof key !== 'bigint') {
-            if (utils_isBytes(key))
-                key = abstract_utils_bytesToHex(key);
+            if (abstract_utils/* isBytes */.aY(key))
+                key = abstract_utils/* bytesToHex */.My(key);
             // Normalize to hex string, pad. E.g. P521 would norm 130-132 char hex to 132-char bytes
             if (typeof key !== 'string' || !lengths.includes(key.length))
                 throw new Error('invalid private key');
@@ -41188,14 +41221,14 @@ function weierstrass_weierstrassPoints(opts) {
             num =
                 typeof key === 'bigint'
                     ? key
-                    : abstract_utils_bytesToNumberBE(abstract_utils_ensureBytes('private key', key, nByteLength));
+                    : abstract_utils/* bytesToNumberBE */.Ph((0,abstract_utils/* ensureBytes */.qj)('private key', key, nByteLength));
         }
         catch (error) {
             throw new Error('invalid private key, expected hex or ' + nByteLength + ' bytes, got ' + typeof key);
         }
         if (wrapPrivateKey)
             num = abstract_modular_mod(num, N); // disabled by default, enabled for BLS
-        aInRange('private key', num, abstract_weierstrass_1n, N); // num in range [1..N-1]
+        abstract_utils/* aInRange */.aK('private key', num, abstract_weierstrass_1n, N); // num in range [1..N-1]
         return num;
     }
     function assertPrjPoint(other) {
@@ -41206,7 +41239,7 @@ function weierstrass_weierstrassPoints(opts) {
     // Converts Projective point to affine (x, y) coordinates.
     // Can accept precomputed Z^-1 - for example, from invertBatch.
     // (x, y, z) ∋ (x=x/z, y=y/z)
-    const toAffineMemo = memoized((p, iz) => {
+    const toAffineMemo = (0,abstract_utils/* memoized */.x)((p, iz) => {
         const { px: x, py: y, pz: z } = p;
         // Fast-path for normalized points
         if (Fp.eql(z, Fp.ONE))
@@ -41227,7 +41260,7 @@ function weierstrass_weierstrassPoints(opts) {
     });
     // NOTE: on exception this will crash 'cached' and no value will be set.
     // Otherwise true will be return
-    const assertValidMemo = memoized((p) => {
+    const assertValidMemo = (0,abstract_utils/* memoized */.x)((p) => {
         if (p.is0()) {
             // (0, 1, 0) aka ZERO is invalid in most contexts.
             // In BLS, ZERO can be serialized, so we allow it.
@@ -41302,7 +41335,7 @@ function weierstrass_weierstrassPoints(opts) {
          * @param hex short/long ECDSA hex
          */
         static fromHex(hex) {
-            const P = Point.fromAffine(fromBytes(abstract_utils_ensureBytes('pointHex', hex)));
+            const P = Point.fromAffine(fromBytes((0,abstract_utils/* ensureBytes */.qj)('pointHex', hex)));
             P.assertValidity();
             return P;
         }
@@ -41456,7 +41489,7 @@ function weierstrass_weierstrassPoints(opts) {
          */
         multiplyUnsafe(sc) {
             const { endo, n: N } = CURVE;
-            aInRange('scalar', sc, abstract_weierstrass_0n, N);
+            abstract_utils/* aInRange */.aK('scalar', sc, abstract_weierstrass_0n, N);
             const I = Point.ZERO;
             if (sc === abstract_weierstrass_0n)
                 return I;
@@ -41497,7 +41530,7 @@ function weierstrass_weierstrassPoints(opts) {
          */
         multiply(scalar) {
             const { endo, n: N } = CURVE;
-            aInRange('scalar', scalar, abstract_weierstrass_1n, N);
+            abstract_utils/* aInRange */.aK('scalar', scalar, abstract_weierstrass_1n, N);
             let point, fake; // Fake point is used to const-time mult
             if (endo) {
                 const { k1neg, k1, k2neg, k2 } = endo.splitScalar(scalar);
@@ -41553,13 +41586,13 @@ function weierstrass_weierstrassPoints(opts) {
             return this.multiplyUnsafe(CURVE.h);
         }
         toRawBytes(isCompressed = true) {
-            abool('isCompressed', isCompressed);
+            (0,abstract_utils/* abool */.e8)('isCompressed', isCompressed);
             this.assertValidity();
             return toBytes(Point, this, isCompressed);
         }
         toHex(isCompressed = true) {
-            abool('isCompressed', isCompressed);
-            return abstract_utils_bytesToHex(this.toRawBytes(isCompressed));
+            (0,abstract_utils/* abool */.e8)('isCompressed', isCompressed);
+            return abstract_utils/* bytesToHex */.My(this.toRawBytes(isCompressed));
         }
     }
     Point.BASE = new Point(CURVE.Gx, CURVE.Gy, Fp.ONE);
@@ -41577,7 +41610,7 @@ function weierstrass_weierstrassPoints(opts) {
 }
 function weierstrass_validateOpts(curve) {
     const opts = curve_validateBasic(curve);
-    utils_validateObject(opts, {
+    abstract_utils/* validateObject */.Q5(opts, {
         hash: 'hash',
         hmac: 'function',
         randomBytes: 'function',
@@ -41611,8 +41644,8 @@ function weierstrass_weierstrass(curveDef) {
         toBytes(_c, point, isCompressed) {
             const a = point.toAffine();
             const x = Fp.toBytes(a.x);
-            const cat = abstract_utils_concatBytes;
-            abool('isCompressed', isCompressed);
+            const cat = abstract_utils/* concatBytes */.Id;
+            (0,abstract_utils/* abool */.e8)('isCompressed', isCompressed);
             if (isCompressed) {
                 return cat(Uint8Array.from([point.hasEvenY() ? 0x02 : 0x03]), x);
             }
@@ -41626,8 +41659,8 @@ function weierstrass_weierstrass(curveDef) {
             const tail = bytes.subarray(1);
             // this.assertValidity() is done inside of fromHex
             if (len === compressedLen && (head === 0x02 || head === 0x03)) {
-                const x = abstract_utils_bytesToNumberBE(tail);
-                if (!inRange(x, abstract_weierstrass_1n, Fp.ORDER))
+                const x = abstract_utils/* bytesToNumberBE */.Ph(tail);
+                if (!abstract_utils/* inRange */.r4(x, abstract_weierstrass_1n, Fp.ORDER))
                     throw new Error('Point is not on curve');
                 const y2 = weierstrassEquation(x); // y² = x³ + ax + b
                 let y;
@@ -41657,7 +41690,7 @@ function weierstrass_weierstrass(curveDef) {
             }
         },
     });
-    const numToNByteStr = (num) => abstract_utils_bytesToHex(abstract_utils_numberToBytesBE(num, CURVE.nByteLength));
+    const numToNByteStr = (num) => abstract_utils/* bytesToHex */.My(abstract_utils/* numberToBytesBE */.lq(num, CURVE.nByteLength));
     function isBiggerThanHalfOrder(number) {
         const HALF = CURVE_ORDER >> abstract_weierstrass_1n;
         return number > HALF;
@@ -41666,7 +41699,7 @@ function weierstrass_weierstrass(curveDef) {
         return isBiggerThanHalfOrder(s) ? modN(-s) : s;
     }
     // slice bytes num
-    const slcNum = (b, from, to) => abstract_utils_bytesToNumberBE(b.slice(from, to));
+    const slcNum = (b, from, to) => abstract_utils/* bytesToNumberBE */.Ph(b.slice(from, to));
     /**
      * ECDSA signature with its (r, s) properties. Supports DER & compact representations.
      */
@@ -41680,25 +41713,25 @@ function weierstrass_weierstrass(curveDef) {
         // pair (bytes of r, bytes of s)
         static fromCompact(hex) {
             const l = CURVE.nByteLength;
-            hex = abstract_utils_ensureBytes('compactSignature', hex, l * 2);
+            hex = (0,abstract_utils/* ensureBytes */.qj)('compactSignature', hex, l * 2);
             return new Signature(slcNum(hex, 0, l), slcNum(hex, l, 2 * l));
         }
         // DER encoded ECDSA signature
         // https://bitcoin.stackexchange.com/questions/57644/what-are-the-parts-of-a-bitcoin-transaction-input-script
         static fromDER(hex) {
-            const { r, s } = weierstrass_DER.toSig(abstract_utils_ensureBytes('DER', hex));
+            const { r, s } = weierstrass_DER.toSig((0,abstract_utils/* ensureBytes */.qj)('DER', hex));
             return new Signature(r, s);
         }
         assertValidity() {
-            aInRange('r', this.r, abstract_weierstrass_1n, CURVE_ORDER); // r in [1..N]
-            aInRange('s', this.s, abstract_weierstrass_1n, CURVE_ORDER); // s in [1..N]
+            abstract_utils/* aInRange */.aK('r', this.r, abstract_weierstrass_1n, CURVE_ORDER); // r in [1..N]
+            abstract_utils/* aInRange */.aK('s', this.s, abstract_weierstrass_1n, CURVE_ORDER); // s in [1..N]
         }
         addRecoveryBit(recovery) {
             return new Signature(this.r, this.s, recovery);
         }
         recoverPublicKey(msgHash) {
             const { r, s, recovery: rec } = this;
-            const h = bits2int_modN(abstract_utils_ensureBytes('msgHash', msgHash)); // Truncate hash
+            const h = bits2int_modN((0,abstract_utils/* ensureBytes */.qj)('msgHash', msgHash)); // Truncate hash
             if (rec == null || ![0, 1, 2, 3].includes(rec))
                 throw new Error('recovery id invalid');
             const radj = rec === 2 || rec === 3 ? r + CURVE.n : r;
@@ -41724,14 +41757,14 @@ function weierstrass_weierstrass(curveDef) {
         }
         // DER-encoded
         toDERRawBytes() {
-            return abstract_utils_hexToBytes(this.toDERHex());
+            return abstract_utils/* hexToBytes */.aT(this.toDERHex());
         }
         toDERHex() {
             return weierstrass_DER.hexFromSig({ r: this.r, s: this.s });
         }
         // padded bytes of r, then padded bytes of s
         toCompactRawBytes() {
-            return abstract_utils_hexToBytes(this.toCompactHex());
+            return abstract_utils/* hexToBytes */.aT(this.toCompactHex());
         }
         toCompactHex() {
             return numToNByteStr(this.r) + numToNByteStr(this.s);
@@ -41783,7 +41816,7 @@ function weierstrass_weierstrass(curveDef) {
      * Quick and dirty check for item being public key. Does not validate hex, or being on-curve.
      */
     function isProbPub(item) {
-        const arr = utils_isBytes(item);
+        const arr = abstract_utils/* isBytes */.aY(item);
         const str = typeof item === 'string';
         const len = (arr || str) && item.length;
         if (arr)
@@ -41823,7 +41856,7 @@ function weierstrass_weierstrass(curveDef) {
                 throw new Error('input is too large');
             // For curves with nBitLength % 8 !== 0: bits2octets(bits2octets(m)) !== bits2octets(m)
             // for some cases, since bytes.length * 8 is not actual bitLength.
-            const num = abstract_utils_bytesToNumberBE(bytes); // check for == u8 done here
+            const num = abstract_utils/* bytesToNumberBE */.Ph(bytes); // check for == u8 done here
             const delta = bytes.length * 8 - CURVE.nBitLength; // truncate to nBitLength leftmost bits
             return delta > 0 ? num >> BigInt(delta) : num;
         };
@@ -41832,14 +41865,14 @@ function weierstrass_weierstrass(curveDef) {
             return modN(bits2int(bytes)); // can't use bytesToNumberBE here
         };
     // NOTE: pads output with zero as per spec
-    const ORDER_MASK = utils_bitMask(CURVE.nBitLength);
+    const ORDER_MASK = abstract_utils/* bitMask */.OG(CURVE.nBitLength);
     /**
      * Converts to bytes. Checks if num in `[0..ORDER_MASK-1]` e.g.: `[0..2^256-1]`.
      */
     function int2octets(num) {
-        aInRange('num < 2^' + CURVE.nBitLength, num, abstract_weierstrass_0n, ORDER_MASK);
+        abstract_utils/* aInRange */.aK('num < 2^' + CURVE.nBitLength, num, abstract_weierstrass_0n, ORDER_MASK);
         // works with order, can have different size than numToField!
-        return abstract_utils_numberToBytesBE(num, CURVE.nByteLength);
+        return abstract_utils/* numberToBytesBE */.lq(num, CURVE.nByteLength);
     }
     // Steps A, D of RFC6979 3.2
     // Creates RFC6979 seed; converts msg/privKey to numbers.
@@ -41853,10 +41886,10 @@ function weierstrass_weierstrass(curveDef) {
         let { lowS, prehash, extraEntropy: ent } = opts; // generates low-s sigs by default
         if (lowS == null)
             lowS = true; // RFC6979 3.2: we skip step A, because we already provide hash
-        msgHash = abstract_utils_ensureBytes('msgHash', msgHash);
+        msgHash = (0,abstract_utils/* ensureBytes */.qj)('msgHash', msgHash);
         validateSigVerOpts(opts);
         if (prehash)
-            msgHash = abstract_utils_ensureBytes('prehashed msgHash', hash(msgHash));
+            msgHash = (0,abstract_utils/* ensureBytes */.qj)('prehashed msgHash', hash(msgHash));
         // We can't later call bits2octets, since nested bits2int is broken for curves
         // with nBitLength % 8 !== 0. Because of that, we unwrap it here as int2octets call.
         // const bits2octets = (bits) => int2octets(bits2int_modN(bits))
@@ -41867,9 +41900,9 @@ function weierstrass_weierstrass(curveDef) {
         if (ent != null && ent !== false) {
             // K = HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1) || k')
             const e = ent === true ? randomBytes(Fp.BYTES) : ent; // generate random bytes OR pass as-is
-            seedArgs.push(abstract_utils_ensureBytes('extraEntropy', e)); // check for being bytes
+            seedArgs.push((0,abstract_utils/* ensureBytes */.qj)('extraEntropy', e)); // check for being bytes
         }
-        const seed = abstract_utils_concatBytes(...seedArgs); // Step D of RFC6979 3.2
+        const seed = abstract_utils/* concatBytes */.Id(...seedArgs); // Step D of RFC6979 3.2
         const m = h1int; // NOTE: no need to call bits2int second time here, it is inside truncateHash!
         // Converts signature params into point w r/s, checks result for validity.
         function k2sig(kBytes) {
@@ -41916,7 +41949,7 @@ function weierstrass_weierstrass(curveDef) {
     function sign(msgHash, privKey, opts = defaultSigOpts) {
         const { seed, k2sig } = prepSig(msgHash, privKey, opts); // Steps A, D of RFC6979 3.2.
         const C = CURVE;
-        const drbg = utils_createHmacDrbg(C.hash.outputLen, C.nByteLength, C.hmac);
+        const drbg = abstract_utils/* createHmacDrbg */.fg(C.hash.outputLen, C.nByteLength, C.hmac);
         return drbg(seed, k2sig); // Steps B, C, D, E, F, G
     }
     // Enable precomputes. Slows down first publicKey computation by 20ms.
@@ -41937,8 +41970,8 @@ function weierstrass_weierstrass(curveDef) {
      */
     function verify(signature, msgHash, publicKey, opts = defaultVerOpts) {
         const sg = signature;
-        msgHash = abstract_utils_ensureBytes('msgHash', msgHash);
-        publicKey = abstract_utils_ensureBytes('publicKey', publicKey);
+        msgHash = (0,abstract_utils/* ensureBytes */.qj)('msgHash', msgHash);
+        publicKey = (0,abstract_utils/* ensureBytes */.qj)('publicKey', publicKey);
         const { lowS, prehash, format } = opts;
         // Verify opts, deduce signature format
         validateSigVerOpts(opts);
@@ -41946,7 +41979,7 @@ function weierstrass_weierstrass(curveDef) {
             throw new Error('options.strict was renamed to lowS');
         if (format !== undefined && format !== 'compact' && format !== 'der')
             throw new Error('format must be compact or der');
-        const isHex = typeof sg === 'string' || utils_isBytes(sg);
+        const isHex = typeof sg === 'string' || abstract_utils/* isBytes */.aY(sg);
         const isObj = !isHex &&
             !format &&
             typeof sg === 'object' &&
@@ -42090,7 +42123,7 @@ function weierstrass_SWUFpSqrtRatio(Fp, Z) {
  * https://www.rfc-editor.org/rfc/rfc9380#section-6.6.2
  */
 function abstract_weierstrass_mapToCurveSimpleSWU(Fp, opts) {
-    mod.validateField(Fp);
+    validateField(Fp);
     if (!Fp.isValid(opts.A) || !Fp.isValid(opts.B) || !Fp.isValid(opts.Z))
         throw new Error('mapToCurveSimpleSWU: invalid opts');
     const sqrtRatio = weierstrass_SWUFpSqrtRatio(Fp, opts.Z);
@@ -42265,14 +42298,14 @@ function secp256k1_taggedHash(tag, ...messages) {
     let tagP = secp256k1_TAGGED_HASH_PREFIXES[tag];
     if (tagP === undefined) {
         const tagH = (0,esm_sha256.sha256)(Uint8Array.from(tag, (c) => c.charCodeAt(0)));
-        tagP = abstract_utils_concatBytes(tagH, tagH);
+        tagP = (0,abstract_utils/* concatBytes */.Id)(tagH, tagH);
         secp256k1_TAGGED_HASH_PREFIXES[tag] = tagP;
     }
-    return (0,esm_sha256.sha256)(abstract_utils_concatBytes(tagP, ...messages));
+    return (0,esm_sha256.sha256)((0,abstract_utils/* concatBytes */.Id)(tagP, ...messages));
 }
 // ECDSA compact points are 33-byte. Schnorr is 32: we strip first byte 0x02 or 0x03
 const secp256k1_pointToBytes = (point) => point.toRawBytes(true).slice(1);
-const secp256k1_numTo32b = (n) => abstract_utils_numberToBytesBE(n, 32);
+const secp256k1_numTo32b = (n) => (0,abstract_utils/* numberToBytesBE */.lq)(n, 32);
 const secp256k1_modP = (x) => abstract_modular_mod(x, secp256k1_secp256k1P);
 const secp256k1_modN = (x) => abstract_modular_mod(x, secp256k1_secp256k1N);
 const secp256k1_Point = secp256k1_secp256k1.ProjectivePoint;
@@ -42289,7 +42322,7 @@ function secp256k1_schnorrGetExtPubKey(priv) {
  * @returns valid point checked for being on-curve
  */
 function secp256k1_lift_x(x) {
-    aInRange('x', x, esm_secp256k1_1n, secp256k1_secp256k1P); // Fail if x ≥ p.
+    (0,abstract_utils/* aInRange */.aK)('x', x, esm_secp256k1_1n, secp256k1_secp256k1P); // Fail if x ≥ p.
     const xx = secp256k1_modP(x * x);
     const c = secp256k1_modP(xx * x + BigInt(7)); // Let c = x³ + 7 mod p.
     let y = secp256k1_sqrtMod(c); // Let y = c^(p+1)/4 mod p.
@@ -42299,7 +42332,7 @@ function secp256k1_lift_x(x) {
     p.assertValidity();
     return p;
 }
-const num = abstract_utils_bytesToNumberBE;
+const num = abstract_utils/* bytesToNumberBE */.Ph;
 /**
  * Create tagged hash, convert it to bigint, reduce modulo-n.
  */
@@ -42317,9 +42350,9 @@ function secp256k1_schnorrGetPublicKey(privateKey) {
  * auxRand is optional and is not the sole source of k generation: bad CSPRNG won't be dangerous.
  */
 function secp256k1_schnorrSign(message, privateKey, auxRand = (0,esm_utils/* randomBytes */.po)(32)) {
-    const m = abstract_utils_ensureBytes('message', message);
+    const m = (0,abstract_utils/* ensureBytes */.qj)('message', message);
     const { bytes: px, scalar: d } = secp256k1_schnorrGetExtPubKey(privateKey); // checks for isWithinCurveOrder
-    const a = abstract_utils_ensureBytes('auxRand', auxRand, 32); // Auxiliary random data a: a 32-byte array
+    const a = (0,abstract_utils/* ensureBytes */.qj)('auxRand', auxRand, 32); // Auxiliary random data a: a 32-byte array
     const t = secp256k1_numTo32b(d ^ num(secp256k1_taggedHash('BIP0340/aux', a))); // Let t be the byte-wise xor of bytes(d) and hash/aux(a)
     const rand = secp256k1_taggedHash('BIP0340/nonce', t, px, m); // Let rand = hash/nonce(t || bytes(P) || m)
     const k_ = secp256k1_modN(num(rand)); // Let k' = int(rand) mod n
@@ -42340,16 +42373,16 @@ function secp256k1_schnorrSign(message, privateKey, auxRand = (0,esm_utils/* ran
  * Will swallow errors & return false except for initial type validation of arguments.
  */
 function secp256k1_schnorrVerify(signature, message, publicKey) {
-    const sig = abstract_utils_ensureBytes('signature', signature, 64);
-    const m = abstract_utils_ensureBytes('message', message);
-    const pub = abstract_utils_ensureBytes('publicKey', publicKey, 32);
+    const sig = (0,abstract_utils/* ensureBytes */.qj)('signature', signature, 64);
+    const m = (0,abstract_utils/* ensureBytes */.qj)('message', message);
+    const pub = (0,abstract_utils/* ensureBytes */.qj)('publicKey', publicKey, 32);
     try {
         const P = secp256k1_lift_x(num(pub)); // P = lift_x(int(pk)); fail if that fails
         const r = num(sig.subarray(0, 32)); // Let r = int(sig[0:32]); fail if r ≥ p.
-        if (!inRange(r, esm_secp256k1_1n, secp256k1_secp256k1P))
+        if (!(0,abstract_utils/* inRange */.r4)(r, esm_secp256k1_1n, secp256k1_secp256k1P))
             return false;
         const s = num(sig.subarray(32, 64)); // Let s = int(sig[32:64]); fail if s ≥ n.
-        if (!inRange(s, esm_secp256k1_1n, secp256k1_secp256k1N))
+        if (!(0,abstract_utils/* inRange */.r4)(s, esm_secp256k1_1n, secp256k1_secp256k1N))
             return false;
         const e = secp256k1_challenge(secp256k1_numTo32b(r), secp256k1_pointToBytes(P), m); // int(challenge(bytes(r)||bytes(P)||m))%n
         const R = secp256k1_GmulAdd(P, s, secp256k1_modN(-e)); // R = s⋅G - e⋅P
@@ -42380,8 +42413,8 @@ const secp256k1_schnorr = /* @__PURE__ */ (() => ({
         randomPrivateKey: secp256k1_secp256k1.utils.randomPrivateKey,
         lift_x: secp256k1_lift_x,
         pointToBytes: secp256k1_pointToBytes,
-        numberToBytesBE: abstract_utils_numberToBytesBE,
-        bytesToNumberBE: abstract_utils_bytesToNumberBE,
+        numberToBytesBE: abstract_utils/* numberToBytesBE */.lq,
+        bytesToNumberBE: abstract_utils/* bytesToNumberBE */.Ph,
         taggedHash: secp256k1_taggedHash,
         mod: abstract_modular_mod,
     },
@@ -42439,6 +42472,8 @@ const secp256k1_encodeToCurve = /* @__PURE__ */ (/* unused pure expression or su
 //# sourceMappingURL=secp256k1.js.map
 // EXTERNAL MODULE: ./node_modules/typescript-lru-cache/dist/index.js
 var dist = __nccwpck_require__(5609);
+// EXTERNAL MODULE: ./node_modules/light-bolt11-decoder/bolt11.js
+var bolt11 = __nccwpck_require__(9842);
 ;// CONCATENATED MODULE: ./node_modules/@scure/base/lib/esm/index.js
 /*! scure-base - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function esm_isBytes(a) {
@@ -42979,8 +43014,6 @@ const esm_stringToBytes = (type, str) => {
 };
 const lib_esm_bytes = (/* unused pure expression or super */ null && (esm_stringToBytes));
 //# sourceMappingURL=index.js.map
-// EXTERNAL MODULE: ./node_modules/light-bolt11-decoder/bolt11.js
-var bolt11 = __nccwpck_require__(9842);
 ;// CONCATENATED MODULE: ./node_modules/@nostr-dev-kit/ndk/dist/index.mjs
 // src/relay/pool/index.ts
 
@@ -43108,7 +43141,7 @@ function tryNormalizeRelayUrl(url) {
   }
 }
 function normalizeRelayUrl(url) {
-  let r = normalizeUrl(url.toLowerCase(), {
+  let r = normalizeUrl(url, {
     stripAuthentication: false,
     stripWWW: false,
     stripHash: true
@@ -43209,6 +43242,7 @@ function normalizeUrl(urlString, options = {}) {
     urlString = urlString.replace(/^(?!(?:\w+:)?\/\/)|^\/\//, options.defaultProtocol);
   }
   const urlObject = new URL(urlString);
+  urlObject.hostname = urlObject.hostname.toLowerCase();
   if (options.forceHttp && options.forceHttps) {
     throw new Error("The `forceHttp` and `forceHttps` options cannot be used together");
   }
@@ -43586,9 +43620,39 @@ function mergeTags(tags1, tags2) {
   tags1.concat(tags2).forEach(processTag);
   return Array.from(tagMap.values());
 }
+function uniqueTag(a, b) {
+  const aLength = a.length;
+  const bLength = b.length;
+  const sameLength = aLength === bLength;
+  if (sameLength) {
+    if (a.every((v, i) => v === b[i])) {
+      return [a];
+    } else {
+      return [a, b];
+    }
+  } else if (aLength > bLength && a.every((v, i) => v === b[i])) {
+    return [a];
+  } else if (bLength > aLength && b.every((v, i) => v === a[i])) {
+    return [b];
+  }
+  return [a, b];
+}
+var hashtagRegex = /(?<=\s|^)(#[^\s!@#$%^&*()=+./,[{\]};:'"?><]+)/g;
+function generateHashtags(content) {
+  const hashtags = content.match(hashtagRegex);
+  const tagIds = /* @__PURE__ */ new Set();
+  const tag = /* @__PURE__ */ new Set();
+  if (hashtags) {
+    for (const hashtag of hashtags) {
+      if (tagIds.has(hashtag.slice(1))) continue;
+      tag.add(hashtag.slice(1));
+      tagIds.add(hashtag.slice(1));
+    }
+  }
+  return Array.from(tag);
+}
 async function generateContentTags(content, tags = []) {
   const tagRegex = /(@|nostr:)(npub|nprofile|note|nevent|naddr)[a-zA-Z0-9]+/g;
-  const hashtagRegex = /(?<=\s|^)(#[^\s!@#$%^&*()=+./,[{\]};:'"?><]+)/g;
   const promises = [];
   const addTagIfNew = (t) => {
     if (!tags.find((t2) => ["q", t[0]].includes(t2[0]) && t2[1] === t[1])) {
@@ -43611,10 +43675,9 @@ async function generateContentTags(content, tags = []) {
           promises.push(
             new Promise(async (resolve) => {
               addTagIfNew([
-                "e",
+                "q",
                 data,
-                await maybeGetEventRelayUrl(entity),
-                "mention"
+                await maybeGetEventRelayUrl(entity)
               ]);
               resolve();
             })
@@ -43628,7 +43691,7 @@ async function generateContentTags(content, tags = []) {
               if (!relays || relays.length === 0) {
                 relays = [await maybeGetEventRelayUrl(entity)];
               }
-              addTagIfNew(["e", id, relays[0], "mention"]);
+              addTagIfNew(["q", id, relays[0]]);
               if (author) addTagIfNew(["p", author]);
               resolve();
             })
@@ -43642,7 +43705,7 @@ async function generateContentTags(content, tags = []) {
               if (relays.length === 0) {
                 relays = [await maybeGetEventRelayUrl(entity)];
               }
-              addTagIfNew(["a", id, relays[0], "mention"]);
+              addTagIfNew(["q", id, relays[0]]);
               addTagIfNew(["p", data.pubkey]);
               resolve();
             })
@@ -43658,13 +43721,8 @@ async function generateContentTags(content, tags = []) {
     }
   });
   await Promise.all(promises);
-  content = content.replace(hashtagRegex, (tag, word) => {
-    const t = ["t", word.slice(1)];
-    if (!tags.find((t2) => t2[0] === t[0] && t2[1] === t[1])) {
-      tags.push(t);
-    }
-    return tag;
-  });
+  const newTags = generateHashtags(content).map((hashtag) => ["t", hashtag]);
+  tags = mergeTags(tags, newTags);
   return { content, tags };
 }
 async function maybeGetEventRelayUrl(nip19Id) {
@@ -43699,8 +43757,10 @@ var NDKKind = /* @__PURE__ */ ((NDKKind2) => {
   NDKKind2[NDKKind2["GroupChat"] = 9] = "GroupChat";
   NDKKind2[NDKKind2["GroupNote"] = 11] = "GroupNote";
   NDKKind2[NDKKind2["GroupReply"] = 12] = "GroupReply";
+  NDKKind2[NDKKind2["GiftWrapSeal"] = 13] = "GiftWrapSeal";
+  NDKKind2[NDKKind2["PrivateDirectMessage"] = 14] = "PrivateDirectMessage";
   NDKKind2[NDKKind2["Image"] = 20] = "Image";
-  NDKKind2[NDKKind2["GenericRespose"] = 22] = "GenericRespose";
+  NDKKind2[NDKKind2["GiftWrap"] = 1059] = "GiftWrap";
   NDKKind2[NDKKind2["GenericRepost"] = 16] = "GenericRepost";
   NDKKind2[NDKKind2["ChannelCreation"] = 40] = "ChannelCreation";
   NDKKind2[NDKKind2["ChannelMetadata"] = 41] = "ChannelMetadata";
@@ -43751,6 +43811,7 @@ var NDKKind = /* @__PURE__ */ ((NDKKind2) => {
   NDKKind2[NDKKind2["BlossomList"] = 10063] = "BlossomList";
   NDKKind2[NDKKind2["NostrWaletConnectInfo"] = 13194] = "NostrWaletConnectInfo";
   NDKKind2[NDKKind2["TierList"] = 17e3] = "TierList";
+  NDKKind2[NDKKind2["CashuWallet"] = 17375] = "CashuWallet";
   NDKKind2[NDKKind2["FollowSet"] = 3e4] = "FollowSet";
   NDKKind2[NDKKind2["CategorizedPeopleList"] = 3e4 /* FollowSet */] = "CategorizedPeopleList";
   NDKKind2[NDKKind2["CategorizedBookmarkList"] = 30001] = "CategorizedBookmarkList";
@@ -43791,7 +43852,7 @@ var NDKKind = /* @__PURE__ */ ((NDKKind2) => {
   NDKKind2[NDKKind2["Classified"] = 30402] = "Classified";
   NDKKind2[NDKKind2["HorizontalVideo"] = 34235] = "HorizontalVideo";
   NDKKind2[NDKKind2["VerticalVideo"] = 34236] = "VerticalVideo";
-  NDKKind2[NDKKind2["CashuWallet"] = 37375] = "CashuWallet";
+  NDKKind2[NDKKind2["LegacyCashuWallet"] = 37375] = "LegacyCashuWallet";
   NDKKind2[NDKKind2["GroupMetadata"] = 39e3] = "GroupMetadata";
   NDKKind2[NDKKind2["GroupAdmins"] = 39001] = "GroupAdmins";
   NDKKind2[NDKKind2["GroupMembers"] = 39002] = "GroupMembers";
@@ -43823,14 +43884,12 @@ var NDKListKinds = (/* unused pure expression or super */ null && ([
   39802 /* HighlightSet */
 ]));
 
-// src/signers/index.ts
-var DEFAULT_ENCRYPTION_SCHEME = "nip44";
-
-// src/events/nip04.ts
-async function dist_encrypt(recipient, signer, type = DEFAULT_ENCRYPTION_SCHEME) {
+// src/events/encryption.ts
+async function dist_encrypt(recipient, signer, scheme = "nip44") {
+  let encrypted;
   if (!this.ndk) throw new Error("No NDK instance found!");
   if (!signer) {
-    await this.ndk.assertSigner();
+    this.ndk.assertSigner();
     signer = this.ndk.signer;
   }
   if (!recipient) {
@@ -43842,21 +43901,40 @@ async function dist_encrypt(recipient, signer, type = DEFAULT_ENCRYPTION_SCHEME)
     }
     recipient = this.ndk.getUser({ pubkey: pTags[0][1] });
   }
-  this.content = await signer?.encrypt(recipient, this.content, type);
+  if (scheme === "nip44" && await isEncryptionEnabled(signer, "nip44")) {
+    encrypted = await signer?.encrypt(recipient, this.content, "nip44");
+  }
+  if ((!encrypted || scheme === "nip04") && await isEncryptionEnabled(signer, "nip04")) {
+    encrypted = await signer.encrypt(recipient, this.content, "nip04");
+  }
+  if (!encrypted) throw new Error("Failed to encrypt event.");
+  this.content = encrypted;
 }
-async function dist_decrypt(sender, signer, type) {
+async function dist_decrypt(sender, signer, scheme) {
+  let decrypted;
   if (!this.ndk) throw new Error("No NDK instance found!");
   if (!signer) {
-    await this.ndk.assertSigner();
+    this.ndk.assertSigner();
     signer = this.ndk.signer;
   }
+  if (!signer) throw new Error("no NDK signer");
   if (!sender) {
     sender = this.author;
   }
-  if (!type) {
-    type = this.content.match(/\?iv=/) ? "nip04" : "nip44";
+  if (!scheme) scheme = this.content.search("\\?iv=") ? "nip04" : "nip44";
+  if ((scheme === "nip04" || this.kind === 4) && await isEncryptionEnabled(signer, "nip04") && this.content.search("\\?iv=")) {
+    decrypted = await signer.decrypt(sender, this.content, "nip04");
   }
-  this.content = await signer?.decrypt(sender, this.content, type);
+  if (!decrypted && scheme === "nip44" && await isEncryptionEnabled(signer, "nip44")) {
+    decrypted = await signer.decrypt(sender, this.content, "nip44");
+  }
+  if (!decrypted) throw new Error("Failed to decrypt event.");
+  this.content = decrypted;
+}
+async function isEncryptionEnabled(signer, scheme) {
+  if (!signer.encryptionEnabled) return false;
+  if (!scheme) return true;
+  return Boolean(await signer.encryptionEnabled(scheme));
 }
 
 // src/events/nip19.ts
@@ -43900,7 +43978,8 @@ async function repost(publish = true, signer) {
   const e = new NDKEvent(this.ndk, {
     kind: getKind(this)
   });
-  e.content = JSON.stringify(this.rawEvent());
+  if (!this.isProtected)
+    e.content = JSON.stringify(this.rawEvent());
   e.tag(this);
   if (this.kind !== 1 /* Text */) {
     e.tags.push(["k", `${this.kind}`]);
@@ -43960,26 +44039,14 @@ function eventThreads(op, events) {
   const threadEvents = events.filter((event) => eventIsPartOfThread(op, event, eventsByAuthor));
   return threadEvents.sort((a, b) => a.created_at - b.created_at);
 }
-function getEventReplyIds(event) {
-  if (hasMarkers(event, event.tagType())) {
-    let rootTag;
-    const replyTags = [];
-    event.getMatchingTags(event.tagType()).forEach((tag) => {
-      if (tag[3] === "root") rootTag = tag;
-      if (tag[3] === "reply") replyTags.push(tag);
-    });
-    if (replyTags.length === 0) {
-      if (rootTag) {
-        replyTags.push(rootTag);
-      }
-    }
-    return replyTags.map((tag) => tag[1]);
-  } else {
-    return event.getMatchingTags("e").map((tag) => tag[1]);
-  }
+function getEventReplyId(event) {
+  const replyTag = getReplyTag(event);
+  if (replyTag) return replyTag[1];
+  const rootTag = getRootTag(event);
+  if (rootTag) return rootTag[1];
 }
 function isEventOriginalPost(event) {
-  return getEventReplyIds(event).length === 0;
+  return getEventReplyId(event) === void 0;
 }
 function eventThreadIds(op, events) {
   const threadIds = /* @__PURE__ */ new Map();
@@ -43998,7 +44065,10 @@ function eventIsPartOfThread(op, event, eventsByAuthor) {
   return allTaggedEventsAreByOriginalAuthor;
 }
 function eventHasETagMarkers(event) {
-  return event.getMatchingTags("e").some((tag) => tag[3]);
+  for (const tag of event.tags) {
+    if (tag[0] === "e" && (tag[3] ?? "").length > 0) return true;
+  }
+  return false;
 }
 function getRootEventId(event, searchTag) {
   searchTag ??= event.tagType();
@@ -44009,7 +44079,7 @@ function getRootEventId(event, searchTag) {
 }
 function getRootTag(event, searchTag) {
   searchTag ??= event.tagType();
-  const rootEventTag = event.tags.find((tag) => tag[3] === "root");
+  const rootEventTag = event.tags.find(isTagRootTag);
   if (!rootEventTag) {
     if (eventHasETagMarkers(event)) return;
     const matchingTags = event.getMatchingTags(searchTag);
@@ -44017,17 +44087,34 @@ function getRootTag(event, searchTag) {
   }
   return rootEventTag;
 }
+var nip22RootTags = /* @__PURE__ */ new Set(["A", "E", "I"]);
+var nip22ReplyTags = /* @__PURE__ */ new Set(["a", "e", "i"]);
 function getReplyTag(event, searchTag) {
-  searchTag ??= event.tagType();
-  let replyTag = event.tags.find((tag) => tag[3] === "reply");
-  if (replyTag) return replyTag;
-  if (!replyTag) replyTag = event.tags.find((tag) => tag[3] === "root");
-  if (!replyTag) {
-    if (eventHasETagMarkers(event)) return;
-    const matchingTags = event.getMatchingTags(searchTag);
-    if (matchingTags.length === 1) return matchingTags[0];
-    if (matchingTags.length === 2) return matchingTags[1];
+  if (event.kind === 1111 /* GenericReply */) {
+    let replyTag2;
+    for (const tag of event.tags) {
+      if (nip22RootTags.has(tag[0])) replyTag2 = tag;
+      else if (nip22ReplyTags.has(tag[0])) {
+        replyTag2 = tag;
+        break;
+      }
+    }
+    return replyTag2;
   }
+  searchTag ??= event.tagType();
+  let hasMarkers2 = false;
+  let replyTag;
+  for (const tag of event.tags) {
+    if (tag[0] !== searchTag) continue;
+    if ((tag[3] ?? "").length > 0) hasMarkers2 = true;
+    if (hasMarkers2 && tag[3] === "reply") return tag;
+    if (hasMarkers2 && tag[3] === "root") replyTag = tag;
+    if (!hasMarkers2) replyTag = tag;
+  }
+  return replyTag;
+}
+function isTagRootTag(tag) {
+  return tag[0] === "E" || tag[3] === "root";
 }
 
 // src/events/fetch-tagged-event.ts
@@ -44178,7 +44265,15 @@ function getEventHashFromSerializedEvent(serializedEvent) {
 }
 
 // src/events/index.ts
-var skipClientTagOnKinds = [3 /* Contacts */];
+var skipClientTagOnKinds = /* @__PURE__ */ new Set([
+  0 /* Metadata */,
+  4 /* EncryptedDirectMessage */,
+  1059 /* GiftWrap */,
+  13 /* GiftWrapSeal */,
+  3 /* Contacts */,
+  9734 /* ZapRequest */,
+  5 /* EventDeletion */
+]);
 var NDKEvent = class _NDKEvent extends lib.EventEmitter {
   ndk;
   created_at;
@@ -44542,7 +44637,7 @@ var NDKEvent = class _NDKEvent extends lib.EventEmitter {
       this.ndk.cacheAdapter.deleteEventIds(eTags);
     }
     const rawEvent = this.rawEvent();
-    if (this.ndk.cacheAdapter?.addUnpublishedEvent) {
+    if (this.ndk.cacheAdapter?.addUnpublishedEvent && shouldTrackUnpublishedEvent(this)) {
       try {
         this.ndk.cacheAdapter.addUnpublishedEvent(this, relaySet.relayUrls);
       } catch (e) {
@@ -44583,17 +44678,20 @@ var NDKEvent = class _NDKEvent extends lib.EventEmitter {
       const clientTag = ["client", this.ndk.clientName ?? ""];
       if (this.ndk.clientNip89) clientTag.push(this.ndk.clientNip89);
       tags.push(clientTag);
-    } else {
+    } else if (this.shouldStripClientTag) {
       tags = tags.filter((tag) => tag[0] !== "client");
     }
     return { content: content || "", tags };
   }
   get shouldAddClientTag() {
     if (!this.ndk?.clientName && !this.ndk?.clientNip89) return false;
-    if (skipClientTagOnKinds.includes(this.kind)) return false;
-    if (this.isEphemeral()) return false;
+    if (skipClientTagOnKinds.has(this.kind)) return false;
+    if (this.isEphemeral() || this.isReplaceable()) return false;
     if (this.hasTag("client")) return false;
     return true;
+  }
+  get shouldStripClientTag() {
+    return skipClientTagOnKinds.has(this.kind);
   }
   muted() {
     const authorMutedEntry = this.ndk?.mutedIds.get(this.pubkey);
@@ -44607,6 +44705,8 @@ var NDKEvent = class _NDKEvent extends lib.EventEmitter {
    * Returns the "d" tag of a parameterized replaceable event or throws an error if the event isn't
    * a parameterized replaceable event.
    * @returns {string} the "d" tag of the event.
+   * 
+   * @deprecated Use `dTag` instead.
    */
   replaceableDTag() {
     if (this.kind && this.kind >= 3e4 && this.kind <= 4e4) {
@@ -44641,15 +44741,21 @@ var NDKEvent = class _NDKEvent extends lib.EventEmitter {
     return this.id;
   }
   /**
-   * Returns the "reference" value ("<kind>:<author-pubkey>:<d-tag>") for this replaceable event.
-   * @returns {string} The id
+   * Returns a stable reference value for a replaceable event.
+   * 
+   * Param replaceable events are returned in the expected format of `<kind>:<pubkey>:<d-tag>`.
+   * Kind-replaceable events are returned in the format of `<kind>:<pubkey>:`.
+   * 
+   * @returns {string} A stable reference value for replaceable events
    */
   tagAddress() {
-    if (!this.isParamReplaceable()) {
-      throw new Error("This must only be called on replaceable events");
+    if (this.isParamReplaceable()) {
+      const dTagId = this.dTag ?? "";
+      return `${this.kind}:${this.pubkey}:${dTagId}`;
+    } else if (this.isReplaceable()) {
+      return `${this.kind}:${this.pubkey}:`;
     }
-    const dTagId = this.replaceableDTag();
-    return `${this.kind}:${this.pubkey}:${dTagId}`;
+    throw new Error("Event is not a replaceable event");
   }
   /**
    * Determines the type of tag that can be used to reference this event from another event.
@@ -44754,6 +44860,13 @@ var NDKEvent = class _NDKEvent extends lib.EventEmitter {
       return { "#e": [this.tagId()] };
     }
   }
+  nip22Filter() {
+    if (this.isParamReplaceable()) {
+      return { "#A": [this.tagId()] };
+    } else {
+      return { "#E": [this.tagId()] };
+    }
+  }
   /**
    * Generates a deletion event of the current event
    *
@@ -44775,6 +44888,21 @@ var NDKEvent = class _NDKEvent extends lib.EventEmitter {
       await e.publish();
     }
     return e;
+  }
+  /**
+   * Establishes whether this is a NIP-70-protectede event.
+   * @@satisfies NIP-70
+   */
+  set isProtected(val) {
+    this.removeTag("-");
+    if (val) this.tags.push(["-"]);
+  }
+  /**
+   * Whether this is a NIP-70-protectede event.
+   * @@satisfies NIP-70
+   */
+  get isProtected() {
+    return this.hasTag("-");
   }
   /**
    * Fetch an event tagged with the given tag following relay hints if provided.
@@ -44895,6 +45023,15 @@ var NDKEvent = class _NDKEvent extends lib.EventEmitter {
     return reply;
   }
 };
+var untrackedUnpublishedEvents = /* @__PURE__ */ new Set([
+  24133 /* NostrConnect */,
+  13194 /* NostrWaletConnectInfo */,
+  23194 /* NostrWalletConnectReq */,
+  23195 /* NostrWalletConnectRes */
+]);
+function shouldTrackUnpublishedEvent(event) {
+  return !untrackedUnpublishedEvents.has(event.kind);
+}
 
 // src/relay/connectivity.ts
 var MAX_RECONNECT_ATTEMPTS = 5;
@@ -46054,20 +46191,34 @@ var NDKRelay = class _NDKRelay extends lib.EventEmitter {
 var NDKPool = class extends lib.EventEmitter {
   // TODO: This should probably be an LRU cache
   _relays = /* @__PURE__ */ new Map();
+  status = "idle";
   autoConnectRelays = /* @__PURE__ */ new Set();
-  blacklistRelayUrls;
+  poolBlacklistRelayUrls = /* @__PURE__ */ new Set();
   debug;
   temporaryRelayTimers = /* @__PURE__ */ new Map();
   flappingRelays = /* @__PURE__ */ new Set();
   // A map to store timeouts for each flapping relay.
   backoffTimes = /* @__PURE__ */ new Map();
   ndk;
-  constructor(relayUrls = [], blacklistedRelayUrls = [], ndk, debug8) {
+  get blacklistRelayUrls() {
+    const val = new Set(this.ndk.blacklistRelayUrls);
+    this.poolBlacklistRelayUrls.forEach((url) => val.add(url));
+    return val;
+  }
+  /**
+   * @param relayUrls - The URLs of the relays to connect to.
+   * @param blacklistedRelayUrls - URLs to blacklist for this pool IN ADDITION to those blacklisted at the ndk-level
+   * @param ndk - The NDK instance.
+   * @param opts - Options for the pool.
+   */
+  constructor(relayUrls = [], blacklistedRelayUrls = [], ndk, { debug: debug8, name } = {}) {
     super();
     this.debug = debug8 ?? ndk.debug.extend("pool");
+    if (name) this._name = name;
     this.ndk = ndk;
     this.relayUrls = relayUrls;
-    this.blacklistRelayUrls = new Set(blacklistedRelayUrls);
+    this.poolBlacklistRelayUrls = new Set(blacklistedRelayUrls);
+    this.ndk.pools.push(this);
   }
   get relays() {
     return this._relays;
@@ -46077,10 +46228,15 @@ var NDKPool = class extends lib.EventEmitter {
     for (const relayUrl of urls) {
       const relay = new NDKRelay(relayUrl, void 0, this.ndk);
       relay.connectivity.netDebug = this.ndk.netDebug;
-      this.addRelay(relay, false);
+      this.addRelay(relay);
     }
   }
+  _name = "unnamed";
+  get name() {
+    return this._name;
+  }
   set name(name) {
+    this._name = name;
     this.debug = this.debug.extend(name);
   }
   /**
@@ -46170,9 +46326,9 @@ var NDKPool = class extends lib.EventEmitter {
         });
       }
     });
-    this.relays.set(relayUrl, relay);
+    this._relays.set(relayUrl, relay);
     if (connect) this.autoConnectRelays.add(relayUrl);
-    if (connect) {
+    if (connect && this.status === "active") {
       this.emit("relay:connecting", relay);
       relay.connect(void 0, reconnect).catch((e) => {
         this.debug(`Failed to connect to relay ${relayUrl}`, e);
@@ -46251,17 +46407,17 @@ var NDKPool = class extends lib.EventEmitter {
    */
   async connect(timeoutMs) {
     const promises = [];
+    this.status = "active";
     this.debug(
       `Connecting to ${this.relays.size} relays${timeoutMs ? `, timeout ${timeoutMs}...` : ""}`
     );
     const relaysToConnect = new Set(this.autoConnectRelays.keys());
-    this.ndk.explicitRelayUrls?.forEach((url) => {
-      const normalizedUrl = normalizeRelayUrl(url);
-      relaysToConnect.add(normalizedUrl);
-    });
     for (const relayUrl of relaysToConnect) {
       const relay = this.relays.get(relayUrl);
-      if (!relay) continue;
+      if (!relay) {
+        console.log(`Relay ${relayUrl} not found in pool ${this.name}`);
+        continue;
+      }
       const connectPromise = new Promise((resolve, reject) => {
         this.emit("relay:connecting", relay);
         return relay.connect(timeoutMs).then(resolve).catch(reject);
@@ -46281,16 +46437,17 @@ var NDKPool = class extends lib.EventEmitter {
         promises.push(connectPromise);
       }
     }
-    if (timeoutMs) {
-      setTimeout(() => {
-        const allConnected = this.stats().connected === this.relays.size;
-        const someConnected = this.stats().connected > 0;
-        if (!allConnected && someConnected) {
-          this.emit("connect");
-        }
-      }, timeoutMs);
-    }
+    const maybeEmitConnect = () => {
+      const allConnected = this.stats().connected === this.relays.size;
+      const someConnected = this.stats().connected > 0;
+      if (!allConnected && someConnected) {
+        this.emit("connect");
+      }
+    };
+    if (timeoutMs)
+      setTimeout(maybeEmitConnect, timeoutMs);
     await Promise.all(promises);
+    maybeEmitConnect();
   }
   checkOnFlappingRelays() {
     const flappingRelaysCount = this.flappingRelays.size;
@@ -46534,9 +46691,11 @@ var NDKSubscriptionCacheUsage = /* @__PURE__ */ ((NDKSubscriptionCacheUsage2) =>
 var defaultOpts = {
   closeOnEose: false,
   cacheUsage: "CACHE_FIRST" /* CACHE_FIRST */,
+  dontSaveToCache: false,
   groupable: true,
   groupableDelay: 100,
-  groupableDelayType: "at-most"
+  groupableDelayType: "at-most",
+  cacheUnconstrainFilter: ["limit", "since", "until"]
 };
 var NDKSubscription = class extends lib.EventEmitter {
   subId;
@@ -46575,23 +46734,25 @@ var NDKSubscription = class extends lib.EventEmitter {
    */
   poolMonitor;
   skipOptimisticPublishEvent = false;
+  /**
+   * Filters to remove when querying the cache.
+   */
+  cacheUnconstrainFilter;
   constructor(ndk, filters, opts, relaySet, subId) {
     super();
     this.ndk = ndk;
     this.pool = opts?.pool || ndk.pool;
     this.opts = { ...defaultOpts, ...opts || {} };
     this.filters = filters instanceof Array ? filters : [filters];
-    this.subId = subId || opts?.subId;
+    this.subId = subId || this.opts.subId;
     this.internalId = Math.random().toString(36).substring(7);
     this.relaySet = relaySet;
-    this.debug = ndk.debug.extend(`subscription[${opts?.subId ?? this.internalId}]`);
-    this.skipVerification = opts?.skipVerification || false;
-    this.skipValidation = opts?.skipValidation || false;
-    this.closeOnEose = opts?.closeOnEose || false;
-    this.skipOptimisticPublishEvent = opts?.skipOptimisticPublishEvent || false;
-    if (this.opts.cacheUsage === "ONLY_CACHE" /* ONLY_CACHE */ && !this.opts.closeOnEose) {
-      throw new Error("Cannot use cache-only options with a persistent subscription");
-    }
+    this.debug = ndk.debug.extend(`subscription[${this.opts.subId ?? this.internalId}]`);
+    this.skipVerification = this.opts.skipVerification || false;
+    this.skipValidation = this.opts.skipValidation || false;
+    this.closeOnEose = this.opts.closeOnEose || false;
+    this.skipOptimisticPublishEvent = this.opts.skipOptimisticPublishEvent || false;
+    this.cacheUnconstrainFilter = this.opts.cacheUnconstrainFilter;
   }
   /**
    * Returns the relays that have not yet sent an EOSE.
@@ -46645,6 +46806,7 @@ var NDKSubscription = class extends lib.EventEmitter {
     let cachePromise;
     if (this.shouldQueryCache()) {
       cachePromise = this.startWithCache();
+      cachePromise.then(() => this.emit("cacheEose"));
       if (this.shouldWaitForCache()) {
         await cachePromise;
         if (queryFullyFilled(this)) {
@@ -46754,7 +46916,7 @@ var NDKSubscription = class extends lib.EventEmitter {
             relay.addNonValidatedEvent();
           }
         }
-        if (this.ndk.cacheAdapter) {
+        if (this.ndk.cacheAdapter && !this.opts.dontSaveToCache) {
           this.ndk.cacheAdapter.setEvent(ndkEvent, this.filters, relay);
         }
       }
@@ -46762,12 +46924,12 @@ var NDKSubscription = class extends lib.EventEmitter {
         this.ndk.emit("event", ndkEvent, relay);
       }
       if (!optimisticPublish || this.skipOptimisticPublishEvent !== true) {
-        this.emit("event", ndkEvent, relay, this);
+        this.emit("event", ndkEvent, relay, this, fromCache, optimisticPublish);
         this.eventFirstSeen.set(eventId, Date.now());
       }
     } else {
       const timeSinceFirstSeen = Date.now() - (this.eventFirstSeen.get(eventId) || 0);
-      this.emit("event:dup", eventId, relay, timeSinceFirstSeen, this);
+      this.emit("event:dup", event, relay, timeSinceFirstSeen, this, fromCache, optimisticPublish);
       if (relay) {
         const signature = verifiedSignatures.get(eventId);
         if (signature && typeof signature === "string") {
@@ -47079,42 +47241,11 @@ var NDKCashuMintList = class _NDKCashuMintList extends NDKEvent {
   }
 };
 
-// src/zapper/ln.ts
-
-
-var d2 = src("ndk:zapper:ln");
-async function getNip57ZapSpecFromLud({ lud06, lud16 }, ndk) {
-  let zapEndpoint;
-  if (lud16 && !lud16.startsWith("LNURL")) {
-    const [name, domain] = lud16.split("@");
-    zapEndpoint = `https://${domain}/.well-known/lnurlp/${name}`;
-  } else if (lud06) {
-    const { words } = esm_bech32.decode(lud06, 1e3);
-    const data = esm_bech32.fromWords(words);
-    const utf8Decoder = new TextDecoder("utf-8");
-    zapEndpoint = utf8Decoder.decode(data);
-  }
-  if (!zapEndpoint) {
-    d2("No zap endpoint found %o", { lud06, lud16 });
-    throw new Error("No zap endpoint found");
-  }
-  try {
-    const _fetch = ndk.httpFetch || fetch;
-    const response = await _fetch(zapEndpoint);
-    if (response.status !== 200) {
-      const text = await response.text();
-      throw new Error(`Unable to fetch zap endpoint ${zapEndpoint}: ${text}`);
-    }
-    return await response.json();
-  } catch (e) {
-    throw new Error(`Unable to fetch zap endpoint ${zapEndpoint}: ${e}`);
-  }
-}
-
 // src/user/index.ts
 var NDKUser = class _NDKUser {
   ndk;
   profile;
+  profileEvent;
   _npub;
   _pubkey;
   relayUrls = [];
@@ -47134,30 +47265,14 @@ var NDKUser = class _NDKUser {
     return this._npub;
   }
   get nprofile() {
-    console.log("encoding with pubkey", this.pubkey);
+    const relays = this.profileEvent?.onRelays?.map((r) => r.url);
     return nip19_exports.nprofileEncode({
-      pubkey: this.pubkey
+      pubkey: this.pubkey,
+      relays
     });
   }
   set npub(npub) {
     this._npub = npub;
-  }
-  /**
-   * Get the user's hexpubkey
-   * @returns {Hexpubkey} The user's hexpubkey
-   *
-   * @deprecated Use `pubkey` instead
-   */
-  get hexpubkey() {
-    return this.pubkey;
-  }
-  /**
-   * Set the user's hexpubkey
-   * @param pubkey {Hexpubkey} The user's hexpubkey
-   * @deprecated Use `pubkey` instead
-   */
-  set hexpubkey(pubkey) {
-    this._pubkey = pubkey;
   }
   /**
    * Get the user's pubkey
@@ -47178,111 +47293,50 @@ var NDKUser = class _NDKUser {
     this._pubkey = pubkey;
   }
   /**
+   * Equivalent to NDKEvent.filters().
+   * @returns {NDKFilter}
+   */
+  filter() {
+    return { "#p": [this.pubkey] };
+  }
+  /**
    * Gets NIP-57 and NIP-61 information that this user has signaled
    *
    * @param getAll {boolean} Whether to get all zap info or just the first one
    */
-  async getZapInfo(getAll = true, methods = ["nip61", "nip57"]) {
+  async getZapInfo(timeoutMs) {
     if (!this.ndk) throw new Error("No NDK instance found");
-    const kinds = [];
-    if (methods.includes("nip61")) kinds.push(10019 /* CashuMintList */);
-    if (methods.includes("nip57")) kinds.push(0 /* Metadata */);
-    if (kinds.length === 0) return [];
-    let events = await this.ndk.fetchEvents(
-      { kinds, authors: [this.pubkey] },
-      {
-        cacheUsage: "ONLY_CACHE" /* ONLY_CACHE */,
-        groupable: false
+    const promiseWithTimeout = async (promise) => {
+      if (!timeoutMs) return promise;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(), timeoutMs))
+        ]);
+      } catch {
+        return void 0;
       }
-    );
-    if (events.size < methods.length) {
-      events = await this.ndk.fetchEvents(
-        { kinds, authors: [this.pubkey] },
-        {
-          cacheUsage: "ONLY_RELAY" /* ONLY_RELAY */
-        }
-      );
-    }
-    const res = [];
-    const nip61 = Array.from(events).find((e) => e.kind === 10019 /* CashuMintList */);
-    const nip572 = Array.from(events).find((e) => e.kind === 0 /* Metadata */);
-    if (nip61) {
-      const mintList = NDKCashuMintList.from(nip61);
+    };
+    const [userProfile, mintListEvent] = await Promise.all([
+      promiseWithTimeout(this.fetchProfile()),
+      promiseWithTimeout(this.ndk.fetchEvent({ kinds: [10019 /* CashuMintList */], authors: [this.pubkey] }))
+    ]);
+    const res = /* @__PURE__ */ new Map();
+    if (mintListEvent) {
+      const mintList = NDKCashuMintList.from(mintListEvent);
       if (mintList.mints.length > 0) {
-        res.push({
-          type: "nip61",
-          data: {
-            mints: mintList.mints,
-            relays: mintList.relays,
-            p2pk: mintList.p2pk
-          }
+        res.set("nip61", {
+          mints: mintList.mints,
+          relays: mintList.relays,
+          p2pk: mintList.p2pk
         });
       }
-      if (!getAll) return res;
     }
-    if (nip572) {
-      const profile = profileFromEvent(nip572);
-      const { lud06, lud16 } = profile;
-      try {
-        const zapSpec = await getNip57ZapSpecFromLud({ lud06, lud16 }, this.ndk);
-        if (zapSpec) {
-          res.push({ type: "nip57", data: zapSpec });
-        }
-      } catch (e) {
-        console.error("Error getting NIP-57 zap spec", e);
-      }
+    if (userProfile) {
+      const { lud06, lud16 } = userProfile;
+      res.set("nip57", { lud06, lud16 });
     }
     return res;
-  }
-  /**
-   * Determines whether this user
-   * has signaled support for NIP-60 zaps
-   **/
-  // export type UserZapConfiguration = {
-  // }
-  // async getRecipientZapConfig(): Promise<> {
-  // }
-  /**
-   * Retrieves the zapper this pubkey has designated as an issuer of zap receipts
-   */
-  async getZapConfiguration(ndk) {
-    ndk ??= this.ndk;
-    if (!ndk) throw new Error("No NDK instance found");
-    const process = async () => {
-      if (this.ndk?.cacheAdapter?.loadUsersLNURLDoc) {
-        const doc = await this.ndk.cacheAdapter.loadUsersLNURLDoc(this.pubkey);
-        if (doc !== "missing") {
-          if (doc === null) return;
-          if (doc) return doc;
-        }
-      }
-      let lnurlspec;
-      try {
-        await this.fetchProfile({ groupable: false });
-        if (this.profile) {
-          const { lud06, lud16 } = this.profile;
-          lnurlspec = await getNip57ZapSpecFromLud({ lud06, lud16 }, ndk);
-        }
-      } catch {
-      }
-      if (this.ndk?.cacheAdapter?.saveUsersLNURLDoc) {
-        this.ndk.cacheAdapter.saveUsersLNURLDoc(this.pubkey, lnurlspec || null);
-      }
-      if (!lnurlspec) return;
-      return lnurlspec;
-    };
-    return await ndk.queuesZapConfig.add({
-      id: this.pubkey,
-      func: process
-    });
-  }
-  /**
-   * Fetches the zapper's pubkey for the zapped user
-   * @returns The zapper's pubkey if one can be found
-   */
-  async getZapperPubkey() {
-    const zapConfig = await this.getZapConfiguration();
-    return zapConfig?.nostrPubkey;
   }
   /**
    * Instantiate an NDKUser from a NIP-05 string
@@ -47315,7 +47369,7 @@ var NDKUser = class _NDKUser {
   async fetchProfile(opts, storeProfileEvent = false) {
     if (!this.ndk) throw new Error("NDK not set");
     if (!this.profile) this.profile = {};
-    let setMetadataEvents = null;
+    let setMetadataEvent = null;
     if (this.ndk.cacheAdapter && this.ndk.cacheAdapter.fetchProfile && opts?.cacheUsage !== "ONLY_RELAY" /* ONLY_RELAY */) {
       const profile = await this.ndk.cacheAdapter.fetchProfile(this.pubkey);
       if (profile) {
@@ -47326,7 +47380,7 @@ var NDKUser = class _NDKUser {
     if (!opts && // if no options have been set
     this.ndk.cacheAdapter && // and we have a cache
     this.ndk.cacheAdapter.locking) {
-      setMetadataEvents = await this.ndk.fetchEvents(
+      setMetadataEvent = await this.ndk.fetchEvent(
         {
           kinds: [0],
           authors: [this.pubkey]
@@ -47344,8 +47398,8 @@ var NDKUser = class _NDKUser {
         groupableDelay: 250
       };
     }
-    if (!setMetadataEvents || setMetadataEvents.size === 0) {
-      setMetadataEvents = await this.ndk.fetchEvents(
+    if (!setMetadataEvent) {
+      setMetadataEvent = await this.ndk.fetchEvent(
         {
           kinds: [0],
           authors: [this.pubkey]
@@ -47353,14 +47407,10 @@ var NDKUser = class _NDKUser {
         opts
       );
     }
-    const sortedSetMetadataEvents = Array.from(setMetadataEvents).sort(
-      (a, b) => a.created_at - b.created_at
-    );
-    if (sortedSetMetadataEvents.length === 0) return null;
-    const event = sortedSetMetadataEvents[0];
-    this.profile = profileFromEvent(event);
+    if (!setMetadataEvent) return null;
+    this.profile = profileFromEvent(setMetadataEvent);
     if (storeProfileEvent) {
-      this.profile.profileEvent = JSON.stringify(event);
+      this.profile.profileEvent = JSON.stringify(setMetadataEvent);
     }
     if (this.profile && this.ndk.cacheAdapter && this.ndk.cacheAdapter.saveProfile) {
       this.ndk.cacheAdapter.saveProfile(this.pubkey, this.profile);
@@ -47934,12 +47984,6 @@ var NDKArticle = class _NDKArticle extends NDKEvent {
   }
 };
 
-// src/events/kinds/wiki.ts
-var NDKWiki = class extends (/* unused pure expression or super */ null && (NDKArticle)) {
-  static kind = (/* unused pure expression or super */ null && (30818)) /* Wiki */;
-  static kinds = (/* unused pure expression or super */ null && ([30818 /* Wiki */]));
-};
-
 // src/events/kinds/classified.ts
 var NDKClassified = class _NDKClassified extends NDKEvent {
   constructor(ndk, rawEvent) {
@@ -48083,283 +48127,6 @@ var NDKClassified = class _NDKClassified extends NDKEvent {
   }
 };
 
-// src/events/kinds/video.ts
-var NDKVideo = class _NDKVideo extends NDKEvent {
-  static kind = 34235 /* HorizontalVideo */;
-  static kinds = [34235 /* HorizontalVideo */, 34236 /* VerticalVideo */];
-  constructor(ndk, rawEvent) {
-    super(ndk, rawEvent);
-    this.kind ??= 34235 /* HorizontalVideo */;
-  }
-  /**
-   * Creates a NDKArticle from an existing NDKEvent.
-   *
-   * @param event NDKEvent to create the NDKArticle from.
-   * @returns NDKArticle
-   */
-  static from(event) {
-    return new _NDKVideo(event.ndk, event.rawEvent());
-  }
-  /**
-   * Getter for the article title.
-   *
-   * @returns {string | undefined} - The article title if available, otherwise undefined.
-   */
-  get title() {
-    return this.tagValue("title");
-  }
-  /**
-   * Setter for the article title.
-   *
-   * @param {string | undefined} title - The title to set for the article.
-   */
-  set title(title) {
-    this.removeTag("title");
-    if (title) this.tags.push(["title", title]);
-  }
-  /**
-   * Getter for the article thumbnail.
-   *
-   * @returns {string | undefined} - The article thumbnail if available, otherwise undefined.
-   */
-  get thumbnail() {
-    return this.tagValue("thumb");
-  }
-  /**
-   * Setter for the article thumbnail.
-   *
-   * @param {string | undefined} thumbnail - The thumbnail to set for the article.
-   */
-  set thumbnail(thumbnail) {
-    this.removeTag("thumb");
-    if (thumbnail) this.tags.push(["thumb", thumbnail]);
-  }
-  get url() {
-    return this.tagValue("url");
-  }
-  set url(url) {
-    this.removeTag("url");
-    if (url) this.tags.push(["url", url]);
-  }
-  /**
-   * Getter for the article's publication timestamp.
-   *
-   * @returns {number | undefined} - The Unix timestamp of when the article was published or undefined.
-   */
-  get published_at() {
-    const tag = this.tagValue("published_at");
-    if (tag) {
-      return parseInt(tag);
-    }
-    return void 0;
-  }
-  /**
-   * Setter for the article's publication timestamp.
-   *
-   * @param {number | undefined} timestamp - The Unix timestamp to set for the article's publication date.
-   */
-  set published_at(timestamp) {
-    this.removeTag("published_at");
-    if (timestamp !== void 0) {
-      this.tags.push(["published_at", timestamp.toString()]);
-    }
-  }
-  /**
-   * Generates content tags for the article.
-   *
-   * This method first checks and sets the publication date if not available,
-   * and then generates content tags based on the base NDKEvent class.
-   *
-   * @returns {ContentTag} - The generated content tags.
-   */
-  async generateTags() {
-    super.generateTags();
-    if (!this.published_at) {
-      this.published_at = this.created_at;
-    }
-    return super.generateTags();
-  }
-  get duration() {
-    const tag = this.tagValue("duration");
-    if (tag) {
-      return parseInt(tag);
-    }
-    return void 0;
-  }
-  /**
-   * Setter for the video's duration
-   *
-   * @param {number | undefined} duration - The duration to set for the video (in seconds)
-   */
-  set duration(dur) {
-    this.removeTag("duration");
-    if (dur !== void 0) {
-      this.tags.push(["duration", Math.floor(dur).toString()]);
-    }
-  }
-};
-
-// src/events/kinds/highlight.ts
-
-var NDKHighlight = class _NDKHighlight extends NDKEvent {
-  _article;
-  static kind = 9802 /* Highlight */;
-  static kinds = [9802 /* Highlight */];
-  constructor(ndk, rawEvent) {
-    super(ndk, rawEvent);
-    this.kind ??= 9802 /* Highlight */;
-  }
-  static from(event) {
-    return new _NDKHighlight(event.ndk, event);
-  }
-  get url() {
-    return this.tagValue("r");
-  }
-  /**
-   * Context tag.
-   */
-  set context(context) {
-    if (context === void 0) {
-      this.tags = this.tags.filter(([tag, value]) => tag !== "context");
-    } else {
-      this.tags = this.tags.filter(([tag, value]) => tag !== "context");
-      this.tags.push(["context", context]);
-    }
-  }
-  get context() {
-    return this.tags.find(([tag, value]) => tag === "context")?.[1] ?? void 0;
-  }
-  /**
-   * Will return the article URL or NDKEvent if they have already been
-   * set (it won't attempt to load remote events)
-   */
-  get article() {
-    return this._article;
-  }
-  /**
-   * Article the highlight is coming from.
-   *
-   * @param article Article URL or NDKEvent.
-   */
-  set article(article) {
-    this._article = article;
-    if (typeof article === "string") {
-      this.tags.push(["r", article]);
-    } else {
-      this.tag(article);
-    }
-  }
-  getArticleTag() {
-    return this.getMatchingTags("a")[0] || this.getMatchingTags("e")[0] || this.getMatchingTags("r")[0];
-  }
-  async getArticle() {
-    if (this._article !== void 0) return this._article;
-    let taggedBech32;
-    const articleTag = this.getArticleTag();
-    if (!articleTag) return void 0;
-    switch (articleTag[0]) {
-      case "a":
-        const [kind, pubkey, identifier] = articleTag[1].split(":");
-        taggedBech32 = nip19_exports.naddrEncode({ kind: parseInt(kind), pubkey, identifier });
-        break;
-      case "e":
-        taggedBech32 = nip19_exports.noteEncode(articleTag[1]);
-        break;
-      case "r":
-        this._article = articleTag[1];
-        break;
-    }
-    if (taggedBech32) {
-      let a = await this.ndk?.fetchEvent(taggedBech32);
-      if (a) {
-        if (a.kind === 30023 /* Article */) {
-          a = NDKArticle.from(a);
-        }
-        this._article = a;
-      }
-    }
-    return this._article;
-  }
-};
-
-// src/events/kinds/NDKRelayList.ts
-var READ_MARKER = "read";
-var WRITE_MARKER = "write";
-var NDKRelayList = class _NDKRelayList extends NDKEvent {
-  constructor(ndk, rawEvent) {
-    super(ndk, rawEvent);
-    this.kind ??= 10002 /* RelayList */;
-  }
-  static from(ndkEvent) {
-    return new _NDKRelayList(ndkEvent.ndk, ndkEvent.rawEvent());
-  }
-  get readRelayUrls() {
-    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").filter((tag) => !tag[2] || tag[2] && tag[2] === READ_MARKER).map((tag) => tryNormalizeRelayUrl(tag[1])).filter((url) => !!url);
-  }
-  set readRelayUrls(relays) {
-    for (const relay of relays) {
-      this.tags.push(["r", relay, READ_MARKER]);
-    }
-  }
-  get writeRelayUrls() {
-    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").filter((tag) => !tag[2] || tag[2] && tag[2] === WRITE_MARKER).map((tag) => tryNormalizeRelayUrl(tag[1])).filter((url) => !!url);
-  }
-  set writeRelayUrls(relays) {
-    for (const relay of relays) {
-      this.tags.push(["r", relay, WRITE_MARKER]);
-    }
-  }
-  get bothRelayUrls() {
-    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").filter((tag) => !tag[2]).map((tag) => tag[1]);
-  }
-  set bothRelayUrls(relays) {
-    for (const relay of relays) {
-      this.tags.push(["r", relay]);
-    }
-  }
-  get relays() {
-    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").map((tag) => tag[1]);
-  }
-  /**
-   * Provides a relaySet for the relays in this list.
-   */
-  get relaySet() {
-    if (!this.ndk) throw new Error("NDKRelayList has no NDK instance");
-    return new NDKRelaySet(
-      new Set(this.relays.map((u) => this.ndk.pool.getRelay(u))),
-      this.ndk
-    );
-  }
-};
-function relayListFromKind3(ndk, contactList) {
-  try {
-    const content = JSON.parse(contactList.content);
-    const relayList = new NDKRelayList(ndk);
-    const readRelays = /* @__PURE__ */ new Set();
-    const writeRelays = /* @__PURE__ */ new Set();
-    for (let [key, config] of Object.entries(content)) {
-      try {
-        key = normalizeRelayUrl(key);
-      } catch {
-        continue;
-      }
-      if (!config) {
-        readRelays.add(key);
-        writeRelays.add(key);
-      } else {
-        const relayConfig = config;
-        if (relayConfig.write) writeRelays.add(key);
-        if (relayConfig.read) readRelays.add(key);
-      }
-    }
-    relayList.readRelayUrls = Array.from(readRelays);
-    relayList.writeRelayUrls = Array.from(writeRelays);
-    return relayList;
-  } catch {
-  }
-  return void 0;
-}
-
 // src/events/kinds/drafts.ts
 var NDKDraft = class _NDKDraft extends NDKEvent {
   _event;
@@ -48435,414 +48202,6 @@ var NDKDraft = class _NDKDraft extends NDKEvent {
     await this.encrypt(user, signer);
     if (publish === false) return;
     return this.publish(relaySet);
-  }
-};
-
-// src/events/kinds/repost.ts
-var NDKRepost = class _NDKRepost extends NDKEvent {
-  _repostedEvents;
-  constructor(ndk, rawEvent) {
-    super(ndk, rawEvent);
-  }
-  static from(event) {
-    return new _NDKRepost(event.ndk, event.rawEvent());
-  }
-  /**
-   * Returns all reposted events by the current event.
-   *
-   * @param klass Optional class to convert the events to.
-   * @returns
-   */
-  async repostedEvents(klass, opts) {
-    const items = [];
-    if (!this.ndk) throw new Error("NDK instance not set");
-    if (this._repostedEvents !== void 0) return this._repostedEvents;
-    for (const eventId of this.repostedEventIds()) {
-      const filter = filterForId(eventId);
-      const event = await this.ndk.fetchEvent(filter, opts);
-      if (event) {
-        items.push(klass ? klass.from(event) : event);
-      }
-    }
-    return items;
-  }
-  /**
-   * Returns the reposted event IDs.
-   */
-  repostedEventIds() {
-    return this.tags.filter((t) => t[0] === "e" || t[0] === "a").map((t) => t[1]);
-  }
-};
-function filterForId(id) {
-  if (id.match(/:/)) {
-    const [kind, pubkey, identifier] = id.split(":");
-    return {
-      kinds: [parseInt(kind)],
-      authors: [pubkey],
-      "#d": [identifier]
-    };
-  } else {
-    return { ids: [id] };
-  }
-}
-
-// src/events/kinds/nip89/NDKAppHandler.ts
-var NDKAppHandlerEvent = class _NDKAppHandlerEvent extends NDKEvent {
-  profile;
-  constructor(ndk, rawEvent) {
-    super(ndk, rawEvent);
-    this.kind ??= 31990 /* AppHandler */;
-  }
-  static from(ndkEvent) {
-    return new _NDKAppHandlerEvent(ndkEvent.ndk, ndkEvent.rawEvent());
-  }
-  /**
-   * Fetches app handler information
-   * If no app information is available on the kind:31990,
-   * we fetch the event's author's profile and return that instead.
-   */
-  async fetchProfile() {
-    if (this.profile === void 0 && this.content.length > 0) {
-      try {
-        const profile = JSON.parse(this.content);
-        if (profile && profile.name) {
-          return profile;
-        } else {
-          this.profile = null;
-        }
-      } catch (e) {
-        this.profile = null;
-      }
-    }
-    return new Promise((resolve, reject) => {
-      const author = this.author;
-      author.fetchProfile().then(() => {
-        resolve(author.profile);
-      }).catch(reject);
-    });
-  }
-};
-
-// src/events/kinds/subscriptions/amount.ts
-var possibleIntervalFrequencies = [
-  "daily",
-  "weekly",
-  "monthly",
-  "quarterly",
-  "yearly"
-];
-function calculateTermDurationInSeconds(term) {
-  switch (term) {
-    case "daily":
-      return 24 * 60 * 60;
-    case "weekly":
-      return 7 * 24 * 60 * 60;
-    case "monthly":
-      return 30 * 24 * 60 * 60;
-    case "quarterly":
-      return 3 * 30 * 24 * 60 * 60;
-    case "yearly":
-      return 365 * 24 * 60 * 60;
-  }
-}
-function newAmount(amount, currency, term) {
-  return ["amount", amount.toString(), currency, term];
-}
-function parseTagToSubscriptionAmount(tag) {
-  const amount = parseInt(tag[1]);
-  if (isNaN(amount) || amount === void 0 || amount === null || amount <= 0) return void 0;
-  const currency = tag[2];
-  if (currency === void 0 || currency === "") return void 0;
-  const term = tag[3];
-  if (term === void 0) return void 0;
-  if (!possibleIntervalFrequencies.includes(term)) return void 0;
-  return {
-    amount,
-    currency,
-    term
-  };
-}
-
-// src/events/kinds/subscriptions/tier.ts
-var NDKSubscriptionTier = class _NDKSubscriptionTier extends NDKArticle {
-  static kind = 37001 /* SubscriptionTier */;
-  static kinds = [37001 /* SubscriptionTier */];
-  constructor(ndk, rawEvent) {
-    const k = rawEvent?.kind ?? 37001 /* SubscriptionTier */;
-    super(ndk, rawEvent);
-    this.kind = k;
-  }
-  /**
-   * Creates a new NDKSubscriptionTier from an event
-   * @param event
-   * @returns NDKSubscriptionTier
-   */
-  static from(event) {
-    return new _NDKSubscriptionTier(event.ndk, event);
-  }
-  /**
-   * Returns perks for this tier
-   */
-  get perks() {
-    return this.getMatchingTags("perk").map((tag) => tag[1]).filter((perk) => perk !== void 0);
-  }
-  /**
-   * Adds a perk to this tier
-   */
-  addPerk(perk) {
-    this.tags.push(["perk", perk]);
-  }
-  /**
-   * Returns the amount for this tier
-   */
-  get amounts() {
-    return this.getMatchingTags("amount").map((tag) => parseTagToSubscriptionAmount(tag)).filter((a) => a !== void 0);
-  }
-  /**
-   * Adds an amount to this tier
-   * @param amount Amount in the smallest unit of the currency (e.g. cents, msats)
-   * @param currency Currency code. Use msat for millisatoshis
-   * @param term One of daily, weekly, monthly, quarterly, yearly
-   */
-  addAmount(amount, currency, term) {
-    this.tags.push(newAmount(amount, currency, term));
-  }
-  /**
-   * Sets a relay where content related to this tier can be found
-   * @param relayUrl URL of the relay
-   */
-  set relayUrl(relayUrl) {
-    this.tags.push(["r", relayUrl]);
-  }
-  /**
-   * Returns the relay URLs for this tier
-   */
-  get relayUrls() {
-    return this.getMatchingTags("r").map((tag) => tag[1]).filter((relay) => relay !== void 0);
-  }
-  /**
-   * Gets the verifier pubkey for this tier. This is the pubkey that will generate
-   * subscription payment receipts
-   */
-  get verifierPubkey() {
-    return this.tagValue("p");
-  }
-  /**
-   * Sets the verifier pubkey for this tier.
-   */
-  set verifierPubkey(pubkey) {
-    this.removeTag("p");
-    if (pubkey) this.tags.push(["p", pubkey]);
-  }
-  /**
-   * Checks if this tier is valid
-   */
-  get isValid() {
-    return this.title !== void 0 && // Must have a title
-    this.amounts.length > 0;
-  }
-};
-
-// src/events/kinds/subscriptions/subscription-start.ts
-
-var NDKSubscriptionStart = class _NDKSubscriptionStart extends NDKEvent {
-  debug;
-  constructor(ndk, rawEvent) {
-    super(ndk, rawEvent);
-    this.kind ??= 7001 /* Subscribe */;
-    this.debug = ndk?.debug.extend("subscription-start") ?? src("ndk:subscription-start");
-  }
-  static from(event) {
-    return new _NDKSubscriptionStart(event.ndk, event.rawEvent());
-  }
-  /**
-   * Recipient of the subscription. I.e. The author of this event subscribes to this user.
-   */
-  get recipient() {
-    const pTag = this.getMatchingTags("p")?.[0];
-    if (!pTag) return void 0;
-    const user = new NDKUser({ pubkey: pTag[1] });
-    return user;
-  }
-  set recipient(user) {
-    this.removeTag("p");
-    if (!user) return;
-    this.tags.push(["p", user.pubkey]);
-  }
-  /**
-   * The amount of the subscription.
-   */
-  get amount() {
-    const amountTag = this.getMatchingTags("amount")?.[0];
-    if (!amountTag) return void 0;
-    return parseTagToSubscriptionAmount(amountTag);
-  }
-  set amount(amount) {
-    this.removeTag("amount");
-    if (!amount) return;
-    this.tags.push(newAmount(amount.amount, amount.currency, amount.term));
-  }
-  /**
-   * The event id or NIP-33 tag id of the tier that the user is subscribing to.
-   */
-  get tierId() {
-    const eTag = this.getMatchingTags("e")?.[0];
-    const aTag = this.getMatchingTags("a")?.[0];
-    if (!eTag || !aTag) return void 0;
-    return eTag[1] ?? aTag[1];
-  }
-  set tier(tier) {
-    this.removeTag("e");
-    this.removeTag("a");
-    this.removeTag("event");
-    if (!tier) return;
-    this.tag(tier);
-    this.removeTag("p");
-    this.tags.push(["p", tier.pubkey]);
-    this.tags.push(["event", JSON.stringify(tier.rawEvent())]);
-  }
-  /**
-   * Fetches the tier that the user is subscribing to.
-   */
-  async fetchTier() {
-    const eventTag = this.tagValue("event");
-    if (eventTag) {
-      try {
-        const parsedEvent = JSON.parse(eventTag);
-        return new NDKSubscriptionTier(this.ndk, parsedEvent);
-      } catch {
-        this.debug("Failed to parse event tag");
-      }
-    }
-    const tierId = this.tierId;
-    if (!tierId) return void 0;
-    const e = await this.ndk?.fetchEvent(tierId);
-    if (!e) return void 0;
-    return NDKSubscriptionTier.from(e);
-  }
-  get isValid() {
-    if (this.getMatchingTags("amount").length !== 1) {
-      this.debug("Invalid # of amount tag");
-      return false;
-    }
-    if (!this.amount) {
-      this.debug("Invalid amount tag");
-      return false;
-    }
-    if (this.getMatchingTags("p").length !== 1) {
-      this.debug("Invalid # of p tag");
-      return false;
-    }
-    if (!this.recipient) {
-      this.debug("Invalid p tag");
-      return false;
-    }
-    return true;
-  }
-};
-
-// src/events/kinds/subscriptions/receipt.ts
-
-var NDKSubscriptionReceipt = class _NDKSubscriptionReceipt extends NDKEvent {
-  debug;
-  constructor(ndk, rawEvent) {
-    super(ndk, rawEvent);
-    this.kind ??= 7003 /* SubscriptionReceipt */;
-    this.debug = ndk?.debug.extend("subscription-start") ?? src("ndk:subscription-start");
-  }
-  static from(event) {
-    return new _NDKSubscriptionReceipt(event.ndk, event.rawEvent());
-  }
-  /**
-   * This is the person being subscribed to
-   */
-  get recipient() {
-    const pTag = this.getMatchingTags("p")?.[0];
-    if (!pTag) return void 0;
-    const user = new NDKUser({ pubkey: pTag[1] });
-    return user;
-  }
-  set recipient(user) {
-    this.removeTag("p");
-    if (!user) return;
-    this.tags.push(["p", user.pubkey]);
-  }
-  /**
-   * This is the person subscribing
-   */
-  get subscriber() {
-    const PTag = this.getMatchingTags("P")?.[0];
-    if (!PTag) return void 0;
-    const user = new NDKUser({ pubkey: PTag[1] });
-    return user;
-  }
-  set subscriber(user) {
-    this.removeTag("P");
-    if (!user) return;
-    this.tags.push(["P", user.pubkey]);
-  }
-  set subscriptionStart(event) {
-    this.debug(`before setting subscription start: ${this.rawEvent}`);
-    this.removeTag("e");
-    this.tag(event, "subscription", true);
-    this.debug(`after setting subscription start: ${this.rawEvent}`);
-  }
-  get tierName() {
-    const tag = this.getMatchingTags("tier")?.[0];
-    return tag?.[1];
-  }
-  get isValid() {
-    const period = this.validPeriod;
-    if (!period) {
-      return false;
-    }
-    if (period.start > period.end) {
-      return false;
-    }
-    const pTags = this.getMatchingTags("p");
-    const PTags = this.getMatchingTags("P");
-    if (pTags.length !== 1 || PTags.length !== 1) {
-      return false;
-    }
-    return true;
-  }
-  get validPeriod() {
-    const tag = this.getMatchingTags("valid")?.[0];
-    if (!tag) return void 0;
-    try {
-      return {
-        start: new Date(parseInt(tag[1]) * 1e3),
-        end: new Date(parseInt(tag[2]) * 1e3)
-      };
-    } catch {
-      return void 0;
-    }
-  }
-  set validPeriod(period) {
-    this.removeTag("valid");
-    if (!period) return;
-    this.tags.push([
-      "valid",
-      Math.floor(period.start.getTime() / 1e3).toString(),
-      Math.floor(period.end.getTime() / 1e3).toString()
-    ]);
-  }
-  get startPeriod() {
-    return this.validPeriod?.start;
-  }
-  get endPeriod() {
-    return this.validPeriod?.end;
-  }
-  /**
-   * Whether the subscription is currently active
-   */
-  isActive(time) {
-    time ??= /* @__PURE__ */ new Date();
-    const period = this.validPeriod;
-    if (!period) return false;
-    if (time < period.start) return false;
-    if (time > period.end) return false;
-    return true;
   }
 };
 
@@ -49076,6 +48435,280 @@ var NDKDVMJobResult = class _NDKDVMJobResult extends NDKEvent {
   }
 };
 
+// src/events/kinds/highlight.ts
+
+var NDKHighlight = class _NDKHighlight extends NDKEvent {
+  _article;
+  static kind = 9802 /* Highlight */;
+  static kinds = [9802 /* Highlight */];
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+    this.kind ??= 9802 /* Highlight */;
+  }
+  static from(event) {
+    return new _NDKHighlight(event.ndk, event);
+  }
+  get url() {
+    return this.tagValue("r");
+  }
+  /**
+   * Context tag.
+   */
+  set context(context) {
+    if (context === void 0) {
+      this.tags = this.tags.filter(([tag, value]) => tag !== "context");
+    } else {
+      this.tags = this.tags.filter(([tag, value]) => tag !== "context");
+      this.tags.push(["context", context]);
+    }
+  }
+  get context() {
+    return this.tags.find(([tag, value]) => tag === "context")?.[1] ?? void 0;
+  }
+  /**
+   * Will return the article URL or NDKEvent if they have already been
+   * set (it won't attempt to load remote events)
+   */
+  get article() {
+    return this._article;
+  }
+  /**
+   * Article the highlight is coming from.
+   *
+   * @param article Article URL or NDKEvent.
+   */
+  set article(article) {
+    this._article = article;
+    if (typeof article === "string") {
+      this.tags.push(["r", article]);
+    } else {
+      this.tag(article);
+    }
+  }
+  getArticleTag() {
+    return this.getMatchingTags("a")[0] || this.getMatchingTags("e")[0] || this.getMatchingTags("r")[0];
+  }
+  async getArticle() {
+    if (this._article !== void 0) return this._article;
+    let taggedBech32;
+    const articleTag = this.getArticleTag();
+    if (!articleTag) return void 0;
+    switch (articleTag[0]) {
+      case "a":
+        const [kind, pubkey, identifier] = articleTag[1].split(":");
+        taggedBech32 = nip19_exports.naddrEncode({ kind: parseInt(kind), pubkey, identifier });
+        break;
+      case "e":
+        taggedBech32 = nip19_exports.noteEncode(articleTag[1]);
+        break;
+      case "r":
+        this._article = articleTag[1];
+        break;
+    }
+    if (taggedBech32) {
+      let a = await this.ndk?.fetchEvent(taggedBech32);
+      if (a) {
+        if (a.kind === 30023 /* Article */) {
+          a = NDKArticle.from(a);
+        }
+        this._article = a;
+      }
+    }
+    return this._article;
+  }
+};
+
+// src/utils/imeta.ts
+function mapImetaTag(tag) {
+  const data = {};
+  if (tag.length === 2) {
+    const parts = tag[1].split(" ");
+    for (let i = 0; i < parts.length; i += 2) {
+      const key = parts[i];
+      const value = parts[i + 1];
+      if (key === "fallback") {
+        if (!data.fallback) data.fallback = [];
+        data.fallback.push(value);
+      } else {
+        data[key] = value;
+      }
+    }
+  }
+  for (const val of tag) {
+    const parts = val.split(" ");
+    const key = parts[0];
+    const value = parts.slice(1).join(" ");
+    if (key === "fallback") {
+      if (!data.fallback) data.fallback = [];
+      data.fallback.push(value);
+    } else {
+      data[key] = value;
+    }
+  }
+  return data;
+}
+function imetaTagToTag(imeta) {
+  const tag = ["imeta"];
+  for (const [key, value] of Object.entries(imeta)) {
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        tag.push(key, v);
+      }
+    } else if (value) {
+      tag.push(key, value);
+    }
+  }
+  return tag;
+}
+
+// src/events/kinds/image.ts
+var NDKImage = class _NDKImage extends NDKEvent {
+  static kind = 20 /* Image */;
+  static kinds = [20 /* Image */];
+  _imetas;
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+    this.kind ??= 20 /* Image */;
+  }
+  /**
+   * Creates a NDKImage from an existing NDKEvent.
+   *
+   * @param event NDKEvent to create the NDKImage from.
+   * @returns NDKImage
+   */
+  static from(event) {
+    return new _NDKImage(event.ndk, event.rawEvent());
+  }
+  get isValid() {
+    return this.imetas.length > 0;
+  }
+  get imetas() {
+    if (this._imetas) return this._imetas;
+    this._imetas = this.tags.filter((tag) => tag[0] === "imeta").map(mapImetaTag).filter((imeta) => !!imeta.url);
+    return this._imetas;
+  }
+  set imetas(tags) {
+    this._imetas = tags;
+    this.tags = this.tags.filter((tag) => tag[0] !== "imeta");
+    this.tags.push(...tags.map(imetaTagToTag));
+  }
+};
+
+// src/events/kinds/NDKRelayList.ts
+var READ_MARKER = "read";
+var WRITE_MARKER = "write";
+var NDKRelayList = class _NDKRelayList extends NDKEvent {
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+    this.kind ??= 10002 /* RelayList */;
+  }
+  static from(ndkEvent) {
+    return new _NDKRelayList(ndkEvent.ndk, ndkEvent.rawEvent());
+  }
+  get readRelayUrls() {
+    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").filter((tag) => !tag[2] || tag[2] && tag[2] === READ_MARKER).map((tag) => tryNormalizeRelayUrl(tag[1])).filter((url) => !!url);
+  }
+  set readRelayUrls(relays) {
+    for (const relay of relays) {
+      this.tags.push(["r", relay, READ_MARKER]);
+    }
+  }
+  get writeRelayUrls() {
+    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").filter((tag) => !tag[2] || tag[2] && tag[2] === WRITE_MARKER).map((tag) => tryNormalizeRelayUrl(tag[1])).filter((url) => !!url);
+  }
+  set writeRelayUrls(relays) {
+    for (const relay of relays) {
+      this.tags.push(["r", relay, WRITE_MARKER]);
+    }
+  }
+  get bothRelayUrls() {
+    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").filter((tag) => !tag[2]).map((tag) => tag[1]);
+  }
+  set bothRelayUrls(relays) {
+    for (const relay of relays) {
+      this.tags.push(["r", relay]);
+    }
+  }
+  get relays() {
+    return this.tags.filter((tag) => tag[0] === "r" || tag[0] === "relay").map((tag) => tag[1]);
+  }
+  /**
+   * Provides a relaySet for the relays in this list.
+   */
+  get relaySet() {
+    if (!this.ndk) throw new Error("NDKRelayList has no NDK instance");
+    return new NDKRelaySet(
+      new Set(this.relays.map((u) => this.ndk.pool.getRelay(u))),
+      this.ndk
+    );
+  }
+};
+function relayListFromKind3(ndk, contactList) {
+  try {
+    const content = JSON.parse(contactList.content);
+    const relayList = new NDKRelayList(ndk);
+    const readRelays = /* @__PURE__ */ new Set();
+    const writeRelays = /* @__PURE__ */ new Set();
+    for (let [key, config] of Object.entries(content)) {
+      try {
+        key = normalizeRelayUrl(key);
+      } catch {
+        continue;
+      }
+      if (!config) {
+        readRelays.add(key);
+        writeRelays.add(key);
+      } else {
+        const relayConfig = config;
+        if (relayConfig.write) writeRelays.add(key);
+        if (relayConfig.read) readRelays.add(key);
+      }
+    }
+    relayList.readRelayUrls = Array.from(readRelays);
+    relayList.writeRelayUrls = Array.from(writeRelays);
+    return relayList;
+  } catch {
+  }
+  return void 0;
+}
+
+// src/events/kinds/nip89/NDKAppHandler.ts
+var NDKAppHandlerEvent = class _NDKAppHandlerEvent extends NDKEvent {
+  profile;
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+    this.kind ??= 31990 /* AppHandler */;
+  }
+  static from(ndkEvent) {
+    return new _NDKAppHandlerEvent(ndkEvent.ndk, ndkEvent.rawEvent());
+  }
+  /**
+   * Fetches app handler information
+   * If no app information is available on the kind:31990,
+   * we fetch the event's author's profile and return that instead.
+   */
+  async fetchProfile() {
+    if (this.profile === void 0 && this.content.length > 0) {
+      try {
+        const profile = JSON.parse(this.content);
+        if (profile && profile.name) {
+          return profile;
+        } else {
+          this.profile = null;
+        }
+      } catch (e) {
+        this.profile = null;
+      }
+    }
+    return new Promise((resolve, reject) => {
+      const author = this.author;
+      author.fetchProfile().then(() => {
+        resolve(author.profile);
+      }).catch(reject);
+    });
+  }
+};
+
 // src/events/kinds/nutzap/index.ts
 
 var NDKNutzap = class _NDKNutzap extends NDKEvent {
@@ -49118,8 +48751,6 @@ var NDKNutzap = class _NDKNutzap extends NDKEvent {
     for (const proof of proofs) {
       this.tags.push(["proof", JSON.stringify(proof)]);
     }
-    this.removeTag("amount");
-    this.tags.push(["amount", this.amount.toString()]);
   }
   get proofs() {
     return this._proofs;
@@ -49141,7 +48772,7 @@ var NDKNutzap = class _NDKNutzap extends NDKEvent {
       const isP2PKLocked = payload[0] === "P2PK" && payload[1]?.data;
       if (isP2PKLocked) {
         const paddedp2pk = payload[1].data;
-        const p2pk = paddedp2pk.slice(2, -1);
+        const p2pk = paddedp2pk.slice(2);
         if (p2pk) return p2pk;
       }
     } catch (e) {
@@ -49159,15 +48790,16 @@ var NDKNutzap = class _NDKNutzap extends NDKEvent {
     this.tag(["u", value]);
   }
   get unit() {
-    return this.tagValue("unit") ?? "msat";
+    return this.tagValue("unit") ?? "sat";
   }
   set unit(value) {
     this.removeTag("unit");
     if (value) this.tag(["unit", value]);
   }
   get amount() {
-    const count = this.proofs.reduce((total, proof) => total + proof.amount, 0);
-    return count * 1e3;
+    const amount = this.proofs.reduce((total, proof) => total + proof.amount, 0);
+    if (this.unit === "msat") return amount * 1e3;
+    return amount;
   }
   sender = this.author;
   /**
@@ -49192,22 +48824,535 @@ var NDKNutzap = class _NDKNutzap extends NDKEvent {
     if (this.ndk) return this.ndk.getUser({ pubkey });
     return new NDKUser({ pubkey });
   }
+  async toNostrEvent() {
+    if (this.unit === "msat") {
+      this.unit = "sat";
+    }
+    this.removeTag("amount");
+    this.tags.push(["amount", this.amount.toString()]);
+    const event = await super.toNostrEvent();
+    event.content = this.comment;
+    return event;
+  }
   /**
    * Validates that the nutzap conforms to NIP-61
    */
   get isValid() {
+    let eTagCount = 0;
     let pTagCount = 0;
     let mintTagCount = 0;
     for (const tag of this.tags) {
+      if (tag[0] === "e") eTagCount++;
       if (tag[0] === "p") pTagCount++;
       if (tag[0] === "u") mintTagCount++;
     }
     return (
       // exactly one recipient and mint
-      pTagCount === 1 && mintTagCount === 1 && // must have at least one proof
+      pTagCount === 1 && mintTagCount === 1 && // must have at most one e tag
+      eTagCount <= 1 && // must have at least one proof
       this.proofs.length > 0
     );
   }
+};
+
+// src/events/kinds/repost.ts
+var NDKRepost = class _NDKRepost extends NDKEvent {
+  _repostedEvents;
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+  }
+  static from(event) {
+    return new _NDKRepost(event.ndk, event.rawEvent());
+  }
+  /**
+   * Returns all reposted events by the current event.
+   *
+   * @param klass Optional class to convert the events to.
+   * @returns
+   */
+  async repostedEvents(klass, opts) {
+    const items = [];
+    if (!this.ndk) throw new Error("NDK instance not set");
+    if (this._repostedEvents !== void 0) return this._repostedEvents;
+    for (const eventId of this.repostedEventIds()) {
+      const filter = filterForId(eventId);
+      const event = await this.ndk.fetchEvent(filter, opts);
+      if (event) {
+        items.push(klass ? klass.from(event) : event);
+      }
+    }
+    return items;
+  }
+  /**
+   * Returns the reposted event IDs.
+   */
+  repostedEventIds() {
+    return this.tags.filter((t) => t[0] === "e" || t[0] === "a").map((t) => t[1]);
+  }
+};
+function filterForId(id) {
+  if (id.match(/:/)) {
+    const [kind, pubkey, identifier] = id.split(":");
+    return {
+      kinds: [parseInt(kind)],
+      authors: [pubkey],
+      "#d": [identifier]
+    };
+  } else {
+    return { ids: [id] };
+  }
+}
+
+// src/events/kinds/subscriptions/amount.ts
+var possibleIntervalFrequencies = [
+  "daily",
+  "weekly",
+  "monthly",
+  "quarterly",
+  "yearly"
+];
+function calculateTermDurationInSeconds(term) {
+  switch (term) {
+    case "daily":
+      return 24 * 60 * 60;
+    case "weekly":
+      return 7 * 24 * 60 * 60;
+    case "monthly":
+      return 30 * 24 * 60 * 60;
+    case "quarterly":
+      return 3 * 30 * 24 * 60 * 60;
+    case "yearly":
+      return 365 * 24 * 60 * 60;
+  }
+}
+function newAmount(amount, currency, term) {
+  return ["amount", amount.toString(), currency, term];
+}
+function parseTagToSubscriptionAmount(tag) {
+  const amount = parseInt(tag[1]);
+  if (isNaN(amount) || amount === void 0 || amount === null || amount <= 0) return void 0;
+  const currency = tag[2];
+  if (currency === void 0 || currency === "") return void 0;
+  const term = tag[3];
+  if (term === void 0) return void 0;
+  if (!possibleIntervalFrequencies.includes(term)) return void 0;
+  return {
+    amount,
+    currency,
+    term
+  };
+}
+
+// src/events/kinds/subscriptions/receipt.ts
+
+var NDKSubscriptionReceipt = class _NDKSubscriptionReceipt extends NDKEvent {
+  debug;
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+    this.kind ??= 7003 /* SubscriptionReceipt */;
+    this.debug = ndk?.debug.extend("subscription-start") ?? src("ndk:subscription-start");
+  }
+  static from(event) {
+    return new _NDKSubscriptionReceipt(event.ndk, event.rawEvent());
+  }
+  /**
+   * This is the person being subscribed to
+   */
+  get recipient() {
+    const pTag = this.getMatchingTags("p")?.[0];
+    if (!pTag) return void 0;
+    const user = new NDKUser({ pubkey: pTag[1] });
+    return user;
+  }
+  set recipient(user) {
+    this.removeTag("p");
+    if (!user) return;
+    this.tags.push(["p", user.pubkey]);
+  }
+  /**
+   * This is the person subscribing
+   */
+  get subscriber() {
+    const PTag = this.getMatchingTags("P")?.[0];
+    if (!PTag) return void 0;
+    const user = new NDKUser({ pubkey: PTag[1] });
+    return user;
+  }
+  set subscriber(user) {
+    this.removeTag("P");
+    if (!user) return;
+    this.tags.push(["P", user.pubkey]);
+  }
+  set subscriptionStart(event) {
+    this.debug(`before setting subscription start: ${this.rawEvent}`);
+    this.removeTag("e");
+    this.tag(event, "subscription", true);
+    this.debug(`after setting subscription start: ${this.rawEvent}`);
+  }
+  get tierName() {
+    const tag = this.getMatchingTags("tier")?.[0];
+    return tag?.[1];
+  }
+  get isValid() {
+    const period = this.validPeriod;
+    if (!period) {
+      return false;
+    }
+    if (period.start > period.end) {
+      return false;
+    }
+    const pTags = this.getMatchingTags("p");
+    const PTags = this.getMatchingTags("P");
+    if (pTags.length !== 1 || PTags.length !== 1) {
+      return false;
+    }
+    return true;
+  }
+  get validPeriod() {
+    const tag = this.getMatchingTags("valid")?.[0];
+    if (!tag) return void 0;
+    try {
+      return {
+        start: new Date(parseInt(tag[1]) * 1e3),
+        end: new Date(parseInt(tag[2]) * 1e3)
+      };
+    } catch {
+      return void 0;
+    }
+  }
+  set validPeriod(period) {
+    this.removeTag("valid");
+    if (!period) return;
+    this.tags.push([
+      "valid",
+      Math.floor(period.start.getTime() / 1e3).toString(),
+      Math.floor(period.end.getTime() / 1e3).toString()
+    ]);
+  }
+  get startPeriod() {
+    return this.validPeriod?.start;
+  }
+  get endPeriod() {
+    return this.validPeriod?.end;
+  }
+  /**
+   * Whether the subscription is currently active
+   */
+  isActive(time) {
+    time ??= /* @__PURE__ */ new Date();
+    const period = this.validPeriod;
+    if (!period) return false;
+    if (time < period.start) return false;
+    if (time > period.end) return false;
+    return true;
+  }
+};
+
+// src/events/kinds/subscriptions/subscription-start.ts
+
+
+// src/events/kinds/subscriptions/tier.ts
+var NDKSubscriptionTier = class _NDKSubscriptionTier extends NDKArticle {
+  static kind = 37001 /* SubscriptionTier */;
+  static kinds = [37001 /* SubscriptionTier */];
+  constructor(ndk, rawEvent) {
+    const k = rawEvent?.kind ?? 37001 /* SubscriptionTier */;
+    super(ndk, rawEvent);
+    this.kind = k;
+  }
+  /**
+   * Creates a new NDKSubscriptionTier from an event
+   * @param event
+   * @returns NDKSubscriptionTier
+   */
+  static from(event) {
+    return new _NDKSubscriptionTier(event.ndk, event);
+  }
+  /**
+   * Returns perks for this tier
+   */
+  get perks() {
+    return this.getMatchingTags("perk").map((tag) => tag[1]).filter((perk) => perk !== void 0);
+  }
+  /**
+   * Adds a perk to this tier
+   */
+  addPerk(perk) {
+    this.tags.push(["perk", perk]);
+  }
+  /**
+   * Returns the amount for this tier
+   */
+  get amounts() {
+    return this.getMatchingTags("amount").map((tag) => parseTagToSubscriptionAmount(tag)).filter((a) => a !== void 0);
+  }
+  /**
+   * Adds an amount to this tier
+   * @param amount Amount in the smallest unit of the currency (e.g. cents, msats)
+   * @param currency Currency code. Use msat for millisatoshis
+   * @param term One of daily, weekly, monthly, quarterly, yearly
+   */
+  addAmount(amount, currency, term) {
+    this.tags.push(newAmount(amount, currency, term));
+  }
+  /**
+   * Sets a relay where content related to this tier can be found
+   * @param relayUrl URL of the relay
+   */
+  set relayUrl(relayUrl) {
+    this.tags.push(["r", relayUrl]);
+  }
+  /**
+   * Returns the relay URLs for this tier
+   */
+  get relayUrls() {
+    return this.getMatchingTags("r").map((tag) => tag[1]).filter((relay) => relay !== void 0);
+  }
+  /**
+   * Gets the verifier pubkey for this tier. This is the pubkey that will generate
+   * subscription payment receipts
+   */
+  get verifierPubkey() {
+    return this.tagValue("p");
+  }
+  /**
+   * Sets the verifier pubkey for this tier.
+   */
+  set verifierPubkey(pubkey) {
+    this.removeTag("p");
+    if (pubkey) this.tags.push(["p", pubkey]);
+  }
+  /**
+   * Checks if this tier is valid
+   */
+  get isValid() {
+    return this.title !== void 0 && // Must have a title
+    this.amounts.length > 0;
+  }
+};
+
+// src/events/kinds/subscriptions/subscription-start.ts
+var NDKSubscriptionStart = class _NDKSubscriptionStart extends NDKEvent {
+  debug;
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+    this.kind ??= 7001 /* Subscribe */;
+    this.debug = ndk?.debug.extend("subscription-start") ?? src("ndk:subscription-start");
+  }
+  static from(event) {
+    return new _NDKSubscriptionStart(event.ndk, event.rawEvent());
+  }
+  /**
+   * Recipient of the subscription. I.e. The author of this event subscribes to this user.
+   */
+  get recipient() {
+    const pTag = this.getMatchingTags("p")?.[0];
+    if (!pTag) return void 0;
+    const user = new NDKUser({ pubkey: pTag[1] });
+    return user;
+  }
+  set recipient(user) {
+    this.removeTag("p");
+    if (!user) return;
+    this.tags.push(["p", user.pubkey]);
+  }
+  /**
+   * The amount of the subscription.
+   */
+  get amount() {
+    const amountTag = this.getMatchingTags("amount")?.[0];
+    if (!amountTag) return void 0;
+    return parseTagToSubscriptionAmount(amountTag);
+  }
+  set amount(amount) {
+    this.removeTag("amount");
+    if (!amount) return;
+    this.tags.push(newAmount(amount.amount, amount.currency, amount.term));
+  }
+  /**
+   * The event id or NIP-33 tag id of the tier that the user is subscribing to.
+   */
+  get tierId() {
+    const eTag = this.getMatchingTags("e")?.[0];
+    const aTag = this.getMatchingTags("a")?.[0];
+    if (!eTag || !aTag) return void 0;
+    return eTag[1] ?? aTag[1];
+  }
+  set tier(tier) {
+    this.removeTag("e");
+    this.removeTag("a");
+    this.removeTag("event");
+    if (!tier) return;
+    this.tag(tier);
+    this.removeTag("p");
+    this.tags.push(["p", tier.pubkey]);
+    this.tags.push(["event", JSON.stringify(tier.rawEvent())]);
+  }
+  /**
+   * Fetches the tier that the user is subscribing to.
+   */
+  async fetchTier() {
+    const eventTag = this.tagValue("event");
+    if (eventTag) {
+      try {
+        const parsedEvent = JSON.parse(eventTag);
+        return new NDKSubscriptionTier(this.ndk, parsedEvent);
+      } catch {
+        this.debug("Failed to parse event tag");
+      }
+    }
+    const tierId = this.tierId;
+    if (!tierId) return void 0;
+    const e = await this.ndk?.fetchEvent(tierId);
+    if (!e) return void 0;
+    return NDKSubscriptionTier.from(e);
+  }
+  get isValid() {
+    if (this.getMatchingTags("amount").length !== 1) {
+      this.debug("Invalid # of amount tag");
+      return false;
+    }
+    if (!this.amount) {
+      this.debug("Invalid amount tag");
+      return false;
+    }
+    if (this.getMatchingTags("p").length !== 1) {
+      this.debug("Invalid # of p tag");
+      return false;
+    }
+    if (!this.recipient) {
+      this.debug("Invalid p tag");
+      return false;
+    }
+    return true;
+  }
+};
+
+// src/events/kinds/video.ts
+var NDKVideo = class _NDKVideo extends NDKEvent {
+  static kind = 34235 /* HorizontalVideo */;
+  static kinds = [34235 /* HorizontalVideo */, 34236 /* VerticalVideo */];
+  _imetas;
+  constructor(ndk, rawEvent) {
+    super(ndk, rawEvent);
+    this.kind ??= 34235 /* HorizontalVideo */;
+  }
+  /**
+   * Creates a NDKArticle from an existing NDKEvent.
+   *
+   * @param event NDKEvent to create the NDKArticle from.
+   * @returns NDKArticle
+   */
+  static from(event) {
+    return new _NDKVideo(event.ndk, event.rawEvent());
+  }
+  /**
+   * Getter for the article title.
+   *
+   * @returns {string | undefined} - The article title if available, otherwise undefined.
+   */
+  get title() {
+    return this.tagValue("title");
+  }
+  /**
+   * Setter for the article title.
+   *
+   * @param {string | undefined} title - The title to set for the article.
+   */
+  set title(title) {
+    this.removeTag("title");
+    if (title) this.tags.push(["title", title]);
+  }
+  /**
+   * Getter for the article thumbnail.
+   *
+   * @returns {string | undefined} - The article thumbnail if available, otherwise undefined.
+   */
+  get thumbnail() {
+    let thumbnail;
+    if (this.imetas && this.imetas.length > 0) {
+      thumbnail = this.imetas[0].image?.[0];
+    }
+    return thumbnail ?? this.tagValue("thumb");
+  }
+  get imetas() {
+    if (this._imetas) return this._imetas;
+    this._imetas = this.tags.filter((tag) => tag[0] === "imeta").map(mapImetaTag);
+    return this._imetas;
+  }
+  set imetas(tags) {
+    this._imetas = tags;
+    this.tags = this.tags.filter((tag) => tag[0] !== "imeta");
+    this.tags.push(...tags.map(imetaTagToTag));
+  }
+  get url() {
+    if (this.imetas && this.imetas.length > 0) {
+      return this.imetas[0].url;
+    }
+    return this.tagValue("url");
+  }
+  /**
+   * Getter for the article's publication timestamp.
+   *
+   * @returns {number | undefined} - The Unix timestamp of when the article was published or undefined.
+   */
+  get published_at() {
+    const tag = this.tagValue("published_at");
+    if (tag) {
+      return parseInt(tag);
+    }
+    return void 0;
+  }
+  /**
+   * Setter for the article's publication timestamp.
+   *
+   * @param {number | undefined} timestamp - The Unix timestamp to set for the article's publication date.
+   */
+  set published_at(timestamp) {
+    this.removeTag("published_at");
+    if (timestamp !== void 0) {
+      this.tags.push(["published_at", timestamp.toString()]);
+    }
+  }
+  /**
+   * Generates content tags for the article.
+   *
+   * This method first checks and sets the publication date if not available,
+   * and then generates content tags based on the base NDKEvent class.
+   *
+   * @returns {ContentTag} - The generated content tags.
+   */
+  async generateTags() {
+    super.generateTags();
+    if (!this.published_at) {
+      this.published_at = this.created_at;
+    }
+    return super.generateTags();
+  }
+  get duration() {
+    const tag = this.tagValue("duration");
+    if (tag) {
+      return parseInt(tag);
+    }
+    return void 0;
+  }
+  /**
+   * Setter for the video's duration
+   *
+   * @param {number | undefined} duration - The duration to set for the video (in seconds)
+   */
+  set duration(dur) {
+    this.removeTag("duration");
+    if (dur !== void 0) {
+      this.tags.push(["duration", Math.floor(dur).toString()]);
+    }
+  }
+};
+
+// src/events/kinds/wiki.ts
+var NDKWiki = class extends NDKArticle {
+  static kind = 30818 /* Wiki */;
+  static kinds = [30818 /* Wiki */];
 };
 
 // src/events/kinds/simple-group/member-list.ts
@@ -49283,6 +49428,30 @@ var NDKSimpleGroupMetadata = class _NDKSimpleGroupMetadata extends NDKEvent {
     }
   }
 };
+
+// src/events/wrap.ts
+var eventWrappingMap = /* @__PURE__ */ new Map();
+[
+  NDKImage,
+  NDKVideo,
+  NDKCashuMintList,
+  NDKArticle,
+  NDKHighlight,
+  NDKWiki,
+  NDKNutzap,
+  NDKSimpleGroupMemberList,
+  NDKSimpleGroupMetadata,
+  NDKSubscriptionTier
+].forEach((klass) => {
+  klass.kinds.forEach((kind) => {
+    eventWrappingMap.set(kind, klass);
+  });
+});
+function dist_wrapEvent(event) {
+  const klass = eventWrappingMap.get(event.kind);
+  if (klass) return klass.from(event);
+  return event;
+}
 
 // src/events/kinds/simple-group/index.ts
 var NDKSimpleGroup = class _NDKSimpleGroup {
@@ -49561,8 +49730,8 @@ var NDKRelayAuthPolicies = {
 
 var NDKNip07Signer = class {
   _userPromise;
-  nip04Queue = [];
-  nip04Processing = false;
+  encryptionQueue = [];
+  encryptionProcessing = false;
   debug;
   waitTimeout;
   /**
@@ -49612,91 +49781,72 @@ var NDKNip07Signer = class {
     }
     return activeRelays.map((url) => new NDKRelay(url, ndk?.relayAuthDefaultPolicy, ndk));
   }
-  async encrypt(recipient, value, type = DEFAULT_ENCRYPTION_SCHEME) {
-    if (type === "nip44") {
-      return this.nip44Encrypt(recipient, value);
-    } else {
-      return this.nip04Encrypt(recipient, value);
-    }
+  async encryptionEnabled(nip) {
+    let enabled = [];
+    if ((!nip || nip == "nip04") && Boolean(window.nostr.nip04)) enabled.push("nip04");
+    if ((!nip || nip == "nip44") && Boolean(window.nostr.nip44)) enabled.push("nip44");
+    return enabled;
   }
-  async decrypt(sender, value, type = DEFAULT_ENCRYPTION_SCHEME) {
-    if (type === "nip44") {
-      return this.nip44Decrypt(sender, value);
-    } else {
-      return this.nip04Decrypt(sender, value);
-    }
-  }
-  async nip44Encrypt(recipient, value) {
-    await this.waitForExtension();
-    return await this.nip44.encrypt(recipient.pubkey, value);
-  }
-  get nip44() {
-    if (!window.nostr?.nip44) {
-      throw new Error("NIP-44 not supported by your browser extension");
-    }
-    return window.nostr.nip44;
-  }
-  async nip44Decrypt(sender, value) {
-    await this.waitForExtension();
-    return await this.nip44.decrypt(sender.pubkey, value);
-  }
-  async nip04Encrypt(recipient, value) {
+  async encrypt(recipient, value, nip = "nip04") {
+    if (!await this.encryptionEnabled(nip)) throw new Error(nip + "encryption is not available from your browser extension");
     await this.waitForExtension();
     const recipientHexPubKey = recipient.pubkey;
-    return this.queueNip04("encrypt", recipientHexPubKey, value);
+    return this.queueEncryption(nip, "encrypt", recipientHexPubKey, value);
   }
-  async nip04Decrypt(sender, value) {
+  async decrypt(sender, value, nip = "nip04") {
+    if (!await this.encryptionEnabled(nip)) throw new Error(nip + "encryption is not available from your browser extension");
     await this.waitForExtension();
     const senderHexPubKey = sender.pubkey;
-    return this.queueNip04("decrypt", senderHexPubKey, value);
+    return this.queueEncryption(nip, "decrypt", senderHexPubKey, value);
   }
-  async queueNip04(type, counterpartyHexpubkey, value) {
+  async queueEncryption(scheme, method, counterpartyHexpubkey, value) {
     return new Promise((resolve, reject) => {
-      this.nip04Queue.push({
-        type,
+      this.encryptionQueue.push({
+        scheme,
+        method,
         counterpartyHexpubkey,
         value,
         resolve,
         reject
       });
-      if (!this.nip04Processing) {
-        this.processNip04Queue();
+      if (!this.encryptionProcessing) {
+        this.processEncryptionQueue();
       }
     });
   }
-  async processNip04Queue(item, retries = 0) {
-    if (!item && this.nip04Queue.length === 0) {
-      this.nip04Processing = false;
+  async processEncryptionQueue(item, retries = 0) {
+    if (!item && this.encryptionQueue.length === 0) {
+      this.encryptionProcessing = false;
       return;
     }
-    this.nip04Processing = true;
-    const { type, counterpartyHexpubkey, value, resolve, reject } = item || this.nip04Queue.shift();
+    this.encryptionProcessing = true;
+    const { scheme, method, counterpartyHexpubkey, value, resolve, reject } = item || this.encryptionQueue.shift();
+    this.debug("Processing encryption queue item", {
+      method,
+      counterpartyHexpubkey,
+      value
+    });
     try {
-      let result;
-      if (type === "encrypt") {
-        result = await window.nostr.nip04.encrypt(counterpartyHexpubkey, value);
-      } else {
-        result = await window.nostr.nip04.decrypt(counterpartyHexpubkey, value);
-      }
+      let result = await window.nostr[scheme][method](counterpartyHexpubkey, value);
       resolve(result);
     } catch (error) {
       if (error.message && error.message.includes("call already executing")) {
         if (retries < 5) {
           this.debug("Retrying encryption queue item", {
-            type,
+            method,
             counterpartyHexpubkey,
             value,
             retries
           });
           setTimeout(() => {
-            this.processNip04Queue(item, retries + 1);
+            this.processEncryptionQueue(item, retries + 1);
           }, 50 * retries);
           return;
         }
       }
       reject(error);
     }
-    this.processNip04Queue();
+    this.processEncryptionQueue();
   }
   waitForExtension() {
     return new Promise((resolve, reject) => {
@@ -49772,55 +49922,32 @@ var NDKPrivateKeySigner = class _NDKPrivateKeySigner {
     }
     return finalizeEvent(event, this._privateKey).sig;
   }
-  getConversationKey(recipient) {
-    if (!this._privateKey) {
-      throw Error("Attempted to get conversation key without a private key");
-    }
-    const recipientHexPubKey = recipient.pubkey;
-    return nip44_exports.getConversationKey(this._privateKey, recipientHexPubKey);
+  async encryptionEnabled(scheme) {
+    let enabled = [];
+    if (!scheme || scheme == "nip04") enabled.push("nip04");
+    if (!scheme || scheme == "nip44") enabled.push("nip44");
+    return enabled;
   }
-  async nip44Encrypt(recipient, value) {
-    const conversationKey = this.getConversationKey(recipient);
-    return await nip44_exports.encrypt(value, conversationKey);
-  }
-  async nip44Decrypt(sender, value) {
-    const conversationKey = this.getConversationKey(sender);
-    return await nip44_exports.decrypt(value, conversationKey);
-  }
-  /**
-   * This method is deprecated and will be removed in a future release, for compatibility
-   * this function calls nip04Encrypt.
-   */
-  async encrypt(recipient, value, type = DEFAULT_ENCRYPTION_SCHEME) {
-    if (type === "nip44") {
-      return this.nip44Encrypt(recipient, value);
-    } else {
-      return this.nip04Encrypt(recipient, value);
-    }
-  }
-  /**
-   * This method is deprecated and will be removed in a future release, for compatibility
-   * this function calls nip04Decrypt.
-   */
-  async decrypt(sender, value, type = DEFAULT_ENCRYPTION_SCHEME) {
-    if (type === "nip44") {
-      return this.nip44Decrypt(sender, value);
-    } else {
-      return this.nip04Decrypt(sender, value);
-    }
-  }
-  async nip04Encrypt(recipient, value) {
-    if (!this._privateKey) {
+  async encrypt(recipient, value, scheme) {
+    if (!this._privateKey || !this.privateKey) {
       throw Error("Attempted to encrypt without a private key");
     }
     const recipientHexPubKey = recipient.pubkey;
+    if (scheme == "nip44") {
+      let conversationKey = nip44_exports.v2.utils.getConversationKey(this._privateKey, recipientHexPubKey);
+      return await nip44_exports.v2.encrypt(value, conversationKey);
+    }
     return await nip04_exports.encrypt(this._privateKey, recipientHexPubKey, value);
   }
-  async nip04Decrypt(sender, value) {
-    if (!this._privateKey) {
+  async decrypt(sender, value, scheme) {
+    if (!this._privateKey || !this.privateKey) {
       throw Error("Attempted to decrypt without a private key");
     }
     const senderHexPubKey = sender.pubkey;
+    if (scheme == "nip44") {
+      let conversationKey = nip44_exports.v2.utils.getConversationKey(this._privateKey, senderHexPubKey);
+      return await nip44_exports.v2.decrypt(value, conversationKey);
+    }
     return await nip04_exports.decrypt(this._privateKey, senderHexPubKey, value);
   }
 };
@@ -49841,11 +49968,13 @@ var NDKNostrRpc = class extends lib.EventEmitter {
     if (relayUrls) {
       this.pool = new NDKPool(
         relayUrls,
-        Array.from(ndk.pool.blacklistRelayUrls),
+        [],
         ndk,
-        debug8.extend("rpc-pool")
+        {
+          debug: debug8.extend("rpc-pool"),
+          name: "Nostr RPC"
+        }
       );
-      this.pool.name = "nostr-rpc";
       this.relaySet = new NDKRelaySet(/* @__PURE__ */ new Set(), ndk, this.pool);
       for (const url of relayUrls) {
         const relay = this.pool.getRelay(url, false, false);
@@ -50385,50 +50514,23 @@ var NDKNip46Signer = class extends lib.EventEmitter {
       );
     });
   }
-  async encrypt(recipient, value) {
-    return this.nip04Encrypt(recipient, value);
+  async encryptionEnabled(scheme) {
+    if (scheme) return [scheme];
+    return Promise.resolve(["nip04", "nip44"]);
   }
-  async decrypt(sender, value) {
-    return this.nip04Decrypt(sender, value);
+  async encrypt(recipient, value, scheme = "nip04") {
+    return this.encryption(recipient, value, scheme, "encrypt");
   }
-  async nip04Encrypt(recipient, value) {
-    return this._encrypt(recipient, value, "nip04");
+  async decrypt(sender, value, scheme = "nip04") {
+    return this.encryption(sender, value, scheme, "decrypt");
   }
-  async nip04Decrypt(sender, value) {
-    return this._decrypt(sender, value, "nip04");
-  }
-  async nip44Encrypt(recipient, value) {
-    return this._encrypt(recipient, value, "nip44");
-  }
-  async nip44Decrypt(sender, value) {
-    return this._decrypt(sender, value, "nip44");
-  }
-  async _encrypt(recipient, value, method) {
+  async encryption(peer, value, scheme, method) {
     const promise = new Promise((resolve, reject) => {
       if (!this.bunkerPubkey) throw new Error("Bunker pubkey not set");
       this.rpc.sendRequest(
         this.bunkerPubkey,
-        method + "_encrypt",
-        [recipient.pubkey, value],
-        24133,
-        (response) => {
-          if (!response.error) {
-            resolve(response.result);
-          } else {
-            reject(response.error);
-          }
-        }
-      );
-    });
-    return promise;
-  }
-  async _decrypt(sender, value, method) {
-    const promise = new Promise((resolve, reject) => {
-      if (!this.bunkerPubkey) throw new Error("Bunker pubkey not set");
-      this.rpc.sendRequest(
-        this.bunkerPubkey,
-        method + "_decrypt",
-        [sender.pubkey, value],
+        `${scheme}_${method}`,
+        [peer.pubkey, value],
         24133,
         (response) => {
           if (!response.error) {
@@ -50600,7 +50702,7 @@ async function getRelayListForUser(pubkey, ndk) {
   const list = await getRelayListForUsers([pubkey], ndk);
   return list.get(pubkey);
 }
-async function getRelayListForUsers(pubkeys, ndk, skipCache = false) {
+async function getRelayListForUsers(pubkeys, ndk, skipCache = false, timeout = 1e3) {
   const pool = ndk.outboxPool || ndk.pool;
   const set = /* @__PURE__ */ new Set();
   for (const relay of pool.relays.values()) set.add(relay);
@@ -50609,8 +50711,8 @@ async function getRelayListForUsers(pubkeys, ndk, skipCache = false) {
   const relaySet = new NDKRelaySet(set, ndk);
   if (ndk.cacheAdapter?.locking && !skipCache) {
     const cachedList = await ndk.fetchEvents(
-      { kinds: [3, 10002], authors: pubkeys },
-      { cacheUsage: "ONLY_CACHE" /* ONLY_CACHE */ }
+      { kinds: [3, 10002], authors: Array.from(new Set(pubkeys)) },
+      { cacheUsage: "ONLY_CACHE" /* ONLY_CACHE */, subId: "ndk-relay-list-fetch" }
     );
     for (const relayList of cachedList) {
       if (relayList.kind === 10002)
@@ -50667,6 +50769,9 @@ async function getRelayListForUsers(pubkeys, ndk, skipCache = false) {
       }
       resolve(relayLists);
     });
+    setTimeout(() => {
+      resolve(relayLists);
+    }, timeout);
     sub.start();
   });
 }
@@ -51137,7 +51242,7 @@ var NDKSubscriptionManager = class {
     this.filterMatchingTime += Date.now() - start;
     this.filterMatchingCount += matchingSubs.length;
     for (const sub of matchingSubs) {
-      sub.eventReceived(event, void 0, false, optimisticPublish);
+      sub.eventReceived(event, relay, false, optimisticPublish);
     }
   }
 };
@@ -51232,6 +51337,7 @@ var DEFAULT_BLACKLISTED_RELAYS = [
 ];
 var NDK = class extends lib.EventEmitter {
   _explicitRelayUrls;
+  blacklistRelayUrls;
   pool;
   outboxPool;
   _signer;
@@ -51251,6 +51357,7 @@ var NDK = class extends lib.EventEmitter {
   validationRatioFn;
   subManager;
   publishingFailureHandled = false;
+  pools = [];
   /**
    * Default relay-auth policy that will be used when a relay requests authentication,
    * if no other policy is specified for that relay.
@@ -51299,13 +51406,14 @@ var NDK = class extends lib.EventEmitter {
     this.debug = opts.debug || src("ndk");
     this.netDebug = opts.netDebug;
     this._explicitRelayUrls = opts.explicitRelayUrls || [];
+    this.blacklistRelayUrls = opts.blacklistRelayUrls || DEFAULT_BLACKLISTED_RELAYS;
     this.subManager = new NDKSubscriptionManager(this.debug);
     this.pool = new NDKPool(
       opts.explicitRelayUrls || [],
-      opts.blacklistRelayUrls || DEFAULT_BLACKLISTED_RELAYS,
+      [],
       this
     );
-    this.pool.name = "main";
+    this.pool.name = "Main";
     this.pool.on("relay:auth", async (relay, challenge) => {
       if (this.relayAuthDefaultPolicy) {
         await this.relayAuthDefaultPolicy(relay, challenge);
@@ -51319,11 +51427,13 @@ var NDK = class extends lib.EventEmitter {
     if (opts.enableOutboxModel) {
       this.outboxPool = new NDKPool(
         opts.outboxRelayUrls || DEFAULT_OUTBOX_RELAYS,
-        opts.blacklistRelayUrls || DEFAULT_BLACKLISTED_RELAYS,
+        [],
         this,
-        this.debug.extend("outbox-pool")
+        {
+          debug: this.debug.extend("outbox-pool"),
+          name: "Outbox Pool"
+        }
       );
-      this.outboxPool.name = "outbox";
       this.outboxTracker = new OutboxTracker(this);
     }
     this.signer = opts.signer;
@@ -51457,7 +51567,7 @@ var NDK = class extends lib.EventEmitter {
    * @param filters
    * @param opts
    * @param relaySet explicit relay set to use
-   * @param autoStart automatically start the subscription
+   * @param autoStart automatically start the subscription -- this can be a boolean or an object with `onEvent` and `onEose` handlers
    * @returns NDKSubscription
    */
   subscribe(filters, opts, relaySet, autoStart = true) {
@@ -51474,6 +51584,10 @@ var NDK = class extends lib.EventEmitter {
       this.outboxTracker?.trackUsers(authors);
     }
     if (autoStart) {
+      if (typeof autoStart === "object") {
+        if (autoStart.onEvent) subscription.on("event", autoStart.onEvent);
+        if (autoStart.onEose) subscription.on("eose", autoStart.onEose);
+      }
       setTimeout(() => subscription.start(), 0);
     }
     return subscription;
@@ -51616,10 +51730,6 @@ var NDK = class extends lib.EventEmitter {
     return new Nip96(domain, this);
   }
   set wallet(wallet) {
-    console.log("setting wallet", {
-      lnPay: wallet?.lnPay,
-      cashuPay: wallet?.cashuPay
-    });
     if (!wallet) {
       this.walletConfig = void 0;
       return;
@@ -51717,6 +51827,38 @@ async function generateZapRequest(target, ndk, data, pubkey, amount, relays, com
   return event;
 }
 
+// src/zapper/ln.ts
+
+
+var d2 = src("ndk:zapper:ln");
+async function getNip57ZapSpecFromLud({ lud06, lud16 }, ndk) {
+  let zapEndpoint;
+  if (lud16 && !lud16.startsWith("LNURL")) {
+    const [name, domain] = lud16.split("@");
+    zapEndpoint = `https://${domain}/.well-known/lnurlp/${name}`;
+  } else if (lud06) {
+    const { words } = esm_bech32.decode(lud06, 1e3);
+    const data = esm_bech32.fromWords(words);
+    const utf8Decoder = new TextDecoder("utf-8");
+    zapEndpoint = utf8Decoder.decode(data);
+  }
+  if (!zapEndpoint) {
+    d2("No zap endpoint found %o", { lud06, lud16 });
+    throw new Error("No zap endpoint found");
+  }
+  try {
+    const _fetch = ndk.httpFetch || fetch;
+    const response = await _fetch(zapEndpoint);
+    if (response.status !== 200) {
+      const text = await response.text();
+      throw new Error(`Unable to fetch zap endpoint ${zapEndpoint}: ${text}`);
+    }
+    return await response.json();
+  } catch (e) {
+    throw new Error(`Unable to fetch zap endpoint ${zapEndpoint}: ${e}`);
+  }
+}
+
 // src/zapper/index.ts
 var d3 = src("ndk:zapper");
 var NDKZapper = class extends lib.EventEmitter {
@@ -51728,6 +51870,7 @@ var NDKZapper = class extends lib.EventEmitter {
   tags;
   signer;
   zapMethod;
+  nutzapAsFallback;
   lnPay;
   /**
    * Called when a cashu payment is to be made.
@@ -51756,6 +51899,7 @@ var NDKZapper = class extends lib.EventEmitter {
     this.unit = unit;
     this.tags = opts.tags;
     this.signer = opts.signer;
+    this.nutzapAsFallback = opts.nutzapAsFallback ?? false;
     this.lnPay = opts.lnPay || this.ndk.walletConfig?.lnPay;
     this.cashuPay = opts.cashuPay || this.ndk.walletConfig?.cashuPay;
     this.onComplete = opts.onComplete || this.ndk.walletConfig?.onPaymentComplete;
@@ -51774,7 +51918,7 @@ var NDKZapper = class extends lib.EventEmitter {
         try {
           result = await this.zapSplit(split);
         } catch (e) {
-          result = e;
+          result = new Error(e.message);
         }
         this.emit("split:complete", split, result);
         results.set(split, result);
@@ -51786,11 +51930,13 @@ var NDKZapper = class extends lib.EventEmitter {
   }
   async zapNip57(split, data) {
     if (!this.lnPay) throw new Error("No lnPay function available");
+    const zapSpec = await getNip57ZapSpecFromLud(data, this.ndk);
+    if (!zapSpec) throw new Error("No zap spec available for recipient");
     const relays = await this.relays(split.pubkey);
     const zapRequest = await generateZapRequest(
       this.target,
       this.ndk,
-      data,
+      zapSpec,
       split.pubkey,
       split.amount,
       relays,
@@ -51802,21 +51948,42 @@ var NDKZapper = class extends lib.EventEmitter {
       d3("Unable to generate zap request");
       throw new Error("Unable to generate zap request");
     }
-    const pr = await this.getLnInvoice(zapRequest, split.amount, data);
+    const pr = await this.getLnInvoice(zapRequest, split.amount, zapSpec);
     if (!pr) {
       d3("Unable to get payment request");
       throw new Error("Unable to get payment request");
     }
-    return await this.lnPay(
+    this.emit("ln_invoice", {
+      amount: split.amount,
+      recipientPubkey: split.pubkey,
+      unit: this.unit,
+      nip57ZapRequest: zapRequest,
+      pr,
+      type: "nip57"
+    });
+    const res = await this.lnPay(
       {
         target: this.target,
         recipientPubkey: split.pubkey,
         paymentDescription: "NIP-57 Zap",
         pr,
         amount: split.amount,
-        unit: this.unit
+        unit: this.unit,
+        nip57ZapRequest: zapRequest
       }
     );
+    if (res?.preimage) {
+      this.emit("ln_payment", {
+        preimage: res.preimage,
+        amount: split.amount,
+        recipientPubkey: split.pubkey,
+        pr,
+        unit: this.unit,
+        nip57ZapRequest: zapRequest,
+        type: "nip57"
+      });
+    }
+    return res;
   }
   /**
    * Fetches information about a NIP-61 zap and asks the caller to create cashu proofs for the zap.
@@ -51833,7 +52000,15 @@ var NDKZapper = class extends lib.EventEmitter {
       paymentDescription: "NIP-61 Zap",
       amount: split.amount,
       unit: this.unit,
-      ...data
+      ...data ?? {}
+    }, (pr) => {
+      this.emit("ln_invoice", {
+        pr,
+        amount: split.amount,
+        recipientPubkey: split.pubkey,
+        unit: this.unit,
+        type: "nip61"
+      });
     });
     d3("NIP-61 Zap result: %o", ret);
     if (ret instanceof Error) {
@@ -51866,45 +52041,49 @@ var NDKZapper = class extends lib.EventEmitter {
    * @returns 
    */
   async zapSplit(split) {
-    const zapped = false;
-    let zapMethods = await this.getZapMethods(this.ndk, split.pubkey);
+    const recipient = this.ndk.getUser({ pubkey: split.pubkey });
+    let zapMethods = await recipient.getZapInfo(2500);
     let retVal;
-    if (zapMethods.length === 0) throw new Error("No zap method available for recipient");
-    zapMethods = zapMethods.sort((a, b) => {
-      if (a.type === "nip61") return -1;
-      if (b.type === "nip61") return 1;
-      return 0;
-    });
-    for (const zapMethod of zapMethods) {
-      if (zapped) break;
-      d3(
-        "Zapping to %s with %d %s using %s",
-        split.pubkey,
-        split.amount,
-        this.unit,
-        zapMethod.type
-      );
+    const canFallbackToNip61 = this.nutzapAsFallback && this.cashuPay;
+    if (zapMethods.size === 0 && !canFallbackToNip61) throw new Error("No zap method available for recipient and NIP-61 fallback is disabled");
+    const nip61Fallback = async () => {
+      if (!this.nutzapAsFallback) return;
+      const relayLists = await getRelayListForUsers([split.pubkey], this.ndk);
+      let relayUrls = relayLists.get(split.pubkey)?.readRelayUrls;
+      relayUrls = this.ndk.pool.connectedRelays().map((r) => r.url);
+      return await this.zapNip61(split, {
+        // use the user's relay list
+        relays: relayUrls,
+        // lock to the user's actual pubkey
+        p2pk: split.pubkey,
+        // allow intramint fallback
+        allowIntramintFallback: !!canFallbackToNip61
+      });
+    };
+    const nip61Method = zapMethods.get("nip61");
+    if (nip61Method) {
       try {
-        if (zapMethod.type === "nip61") {
-          retVal = await this.zapNip61(split, zapMethod.data);
-        } else if (zapMethod.type === "nip57") {
-          retVal = await this.zapNip57(split, zapMethod.data);
-        }
-        if (!(retVal instanceof Error)) {
-          break;
-        }
+        retVal = await this.zapNip61(split, nip61Method);
+        if (retVal instanceof NDKNutzap) return retVal;
       } catch (e) {
-        if (e instanceof Error) retVal = e;
-        else retVal = new Error(e);
-        d3(
-          "Error zapping to %s with %d %s using %s: %o",
-          split.pubkey,
-          split.amount,
-          this.unit,
-          zapMethod.type,
-          e
-        );
+        this.emit("notice", `NIP-61 attempt failed: ${e.message}`);
       }
+    }
+    const nip57Method = zapMethods.get("nip57");
+    if (nip57Method) {
+      try {
+        retVal = await this.zapNip57(split, nip57Method);
+        if (!(retVal instanceof Error)) return retVal;
+      } catch (e) {
+        this.emit("notice", `NIP-57 attempt failed: ${e.message}`);
+      }
+    }
+    if (canFallbackToNip61) {
+      retVal = await nip61Fallback();
+      if (retVal instanceof Error) throw retVal;
+      return retVal;
+    } else {
+      this.emit("notice", "Zap methods exhausted and there was no fallback to NIP-61");
     }
     if (retVal instanceof Error) throw retVal;
     return retVal;
@@ -51976,15 +52155,9 @@ var NDKZapper = class extends lib.EventEmitter {
    * @param pubkey
    * @returns
    */
-  async getZapMethods(ndk, recipient) {
-    const methods = [];
-    if (this.cashuPay) methods.push("nip61");
-    if (this.lnPay) methods.push("nip57");
-    if (methods.length === 0) throw new Error("There are no payment methods available! Please set at least one of lnPay or cashuPay");
+  async getZapMethods(ndk, recipient, timeout = 2500) {
     const user = ndk.getUser({ pubkey: recipient });
-    const zapInfo = await user.getZapInfo(false, methods);
-    d3("Zap info for %s: %o", user.npub, zapInfo);
-    return zapInfo;
+    return await user.getZapInfo(timeout);
   }
   /**
    * @returns the relays to use for the zap request
@@ -52267,7 +52440,7 @@ async function mirror_mirrorBlob(server, blob, opts) {
         case 402: {
             if (!opts?.onPayment)
                 throw new Error("Missing payment handler");
-            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 344).then(__nccwpck_require__.t.bind(__nccwpck_require__, 4344, 19));
+            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 60).then(__nccwpck_require__.bind(__nccwpck_require__, 4060));
             const request = getPaymentRequestFromHeaders(mirror.headers);
             const token = await opts.onPayment(server, blob, request);
             const payment = getEncodedToken(token);
@@ -52335,7 +52508,7 @@ async function uploadBlob(server, blob, opts) {
         case 402: {
             if (!opts?.onPayment)
                 throw new Error("Missing payment handler");
-            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 344).then(__nccwpck_require__.t.bind(__nccwpck_require__, 4344, 19));
+            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 60).then(__nccwpck_require__.bind(__nccwpck_require__, 4060));
             const request = getPaymentRequestFromHeaders(firstTry.headers);
             const token = await opts.onPayment(server, blob, request);
             const payment = getEncodedToken(token);
@@ -52464,7 +52637,7 @@ async function listBlobs(server, pubkey, opts) {
         case 402: {
             if (!opts?.onPayment)
                 throw new Error("Missing payment handler");
-            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 344).then(__nccwpck_require__.t.bind(__nccwpck_require__, 4344, 19));
+            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 60).then(__nccwpck_require__.bind(__nccwpck_require__, 4060));
             const request = getPaymentRequestFromHeaders(list.headers);
             const token = await opts.onPayment(server, request);
             const payment = getEncodedToken(token);
@@ -52506,7 +52679,7 @@ async function downloadBlob(server, hash, opts) {
         case 402: {
             if (!opts?.onPayment)
                 throw new Error("Missing payment handler");
-            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 344).then(__nccwpck_require__.t.bind(__nccwpck_require__, 4344, 19));
+            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 60).then(__nccwpck_require__.bind(__nccwpck_require__, 4060));
             const request = getPaymentRequestFromHeaders(download.headers);
             const token = await opts.onPayment(server, hash, request);
             const payment = getEncodedToken(token);
@@ -52549,7 +52722,7 @@ async function deleteBlob(server, hash, opts) {
         case 402: {
             if (!opts?.onPayment)
                 throw new Error("Missing payment handler");
-            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 344).then(__nccwpck_require__.t.bind(__nccwpck_require__, 4344, 19));
+            const { getEncodedToken } = await __nccwpck_require__.e(/* import() */ 60).then(__nccwpck_require__.bind(__nccwpck_require__, 4060));
             const request = getPaymentRequestFromHeaders(res.headers);
             const token = await opts.onPayment(server, hash, request);
             const payment = getEncodedToken(token);
@@ -53975,12 +54148,12 @@ _Mime_extensionToType = new WeakMap(), _Mime_typeToExtension = new WeakMap(), _M
 
 
 console.log('Starting blossom Upload');
-async function upload(filePath, host) {
+async function upload(filePath, host, nostrPrivateKey) {
     const data = (0,external_fs_.readFileSync)(filePath, 'utf-8');
     const fileType = dist_src.getType(filePath);
     const blob = new Blob([data], { type: fileType?.toString() });
     async function signer(event) {
-        const signer = new NDKPrivateKeySigner("5de4e082b712da4364685141aa06b7d0fec9b178e1246c74dc66bc3dc03e5e61");
+        const signer = new NDKPrivateKeySigner(nostrPrivateKey);
         const pubkey = await signer.user().then(u => u.pubkey);
         const signature = await signer.sign(event);
         const y = event;
@@ -53989,17 +54162,17 @@ async function upload(filePath, host) {
     const client = new BlossomClient(host, signer);
     const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file');
     const result = await client.uploadBlob(blob, { auth: uploadAuthEvent });
+    (0,core.setOutput)("blossomUrl", result.url);
+    (0,core.setOutput)("blossomHash", result.sha256);
     console.log(`Blob uploaded!, ${result.url}`);
 }
 try {
     // Fetch the value of the input 'who-to-greet' specified in action.yml
     const host = (0,core.getInput)('host');
     const filePath = (0,core.getInput)('filePath');
+    const nostrPrivateKey = (0,core.getInput)('nostrPrivateKey');
     console.log(`Uploading file '${filePath}' to host: '${host}'!`);
-    upload(filePath, host)
-        .then(blossomHash => {
-        (0,core.setOutput)("blossom-hash", blossomHash);
-    })
+    upload(filePath, host, nostrPrivateKey)
         .catch((error) => {
         console.error("Blossom Upload failed with error", error);
         if (error instanceof Error) {
