@@ -35,11 +35,11 @@ async function upload(filePath, host) {
     try {
         const uploadAuthEvent = await client.createUploadAuth(blob, 'Upload file');
         const result = await client.uploadBlob(blob, { auth: uploadAuthEvent });
-        console.log(`Blob uploaded!, ${result.url}`); // Use result.url
-        return result.url; // Return the actual URL
+        core_1.setOutput("blossom-hash", result.url);
+        return result.url;
     } catch (error) {
         console.error("Blossom Upload failed with error", error);
-        core_1.setFailed(error.message); // Set action as failed
+        core_1.setFailed(error.message); // Set action as failed *within the function*
         throw error; // Re-throw the error to be caught by the outer try-catch
     }
 }
@@ -51,24 +51,15 @@ try {
     console.log(`Uploading file ${filePath} to host: ${host}!`);
     upload(filePath, host)
         .then(blossomHash => {
-        (0, core_1.setOutput)("blossom-hash", blossomHash);
-    })
-        .catch((error) => {
-        console.error("Blossom Upload failed with error", error);
-        if (error instanceof Error) {
-            (0, core_1.setFailed)(error.message);
-        }
-        else {
-            (0, core_1.setFailed)("unexpected error");
-        }
-    });
-}
-catch (error) {
+            console.log("Blossom Hash:", blossomHash); // Log the hash!
+            core_1.setOutput("blossom-hash", blossomHash); // Set the output
+        })
+        .catch((error) => { // Catch errors from upload()
+            console.error("Blossom Upload failed with error", error);
+            core_1.setFailed(error.message); // Set the action as failed *here*
+        });
+
+} catch (error) { // Catch errors from getInput() or other top-level errors
     console.error("Blossom Upload failed with error", error);
-    if (error instanceof Error) {
-        (0, core_1.setFailed)(error.message);
-    }
-    else {
-        (0, core_1.setFailed)("unexpected error");
-    }
+    core_1.setFailed(error.message); // Set the action as failed *here*
 }
