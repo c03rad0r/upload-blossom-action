@@ -16,6 +16,11 @@ jobs:
           filePath: 'some-file.txt'
 ```
 
+## Building
+
+Run
+`npm run build` to build the app into the `dist` directory.
+
 ## Issues / Contributions
 
 Please use Nostr to create issues and pull-requests for this repository.
