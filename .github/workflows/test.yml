@@ -19,7 +19,7 @@ jobs:
       uses: ./
       id: blossom-upload
       with:
-        host: ${{ secrets.HOST }}
+        host: "https://blossom.swissdash.site"
         filePath: test.txt
         nostrPrivateKey: ${{ secrets.NSEC }}
 
