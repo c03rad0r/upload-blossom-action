@@ -1,3569 +1,17 @@
-exports.id = 344;
-exports.ids = [344];
+exports.id = 60;
+exports.ids = [60];
 exports.modules = {
-
-/***/ 3314:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CashuMint = void 0;
-var WSConnection_js_1 = __webpack_require__(2364);
-var index_js_1 = __webpack_require__(4748);
-var request_js_1 = __importDefault(__webpack_require__(2453));
-var utils_js_1 = __webpack_require__(4561);
-var nut_05_js_1 = __webpack_require__(6573);
-var nut_04_js_1 = __webpack_require__(3358);
-var nut_06_js_1 = __webpack_require__(5156);
-/**
- * Class represents Cashu Mint API. This class contains Lower level functions that are implemented by CashuWallet.
- */
-var CashuMint = /** @class */ (function () {
-    /**
-     * @param _mintUrl requires mint URL to create this object
-     * @param _customRequest if passed, use custom request implementation for network communication with the mint
-     */
-    function CashuMint(_mintUrl, _customRequest) {
-        this._mintUrl = _mintUrl;
-        this._customRequest = _customRequest;
-        this._mintUrl = (0, utils_js_1.sanitizeUrl)(_mintUrl);
-        this._customRequest = _customRequest;
-    }
-    Object.defineProperty(CashuMint.prototype, "mintUrl", {
-        get: function () {
-            return this._mintUrl;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    /**
-     * fetches mints info at the /info endpoint
-     * @param mintUrl
-     * @param customRequest
-     */
-    CashuMint.getInfo = function (mintUrl, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, response, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/info')
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        data = (0, nut_06_js_1.handleMintInfoContactFieldDeprecated)(response);
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * fetches mints info at the /info endpoint
-     */
-    CashuMint.prototype.getInfo = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.getInfo(this._mintUrl, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Performs a swap operation with ecash inputs and outputs.
-     * @param mintUrl
-     * @param swapPayload payload containing inputs and outputs
-     * @param customRequest
-     * @returns signed outputs
-     */
-    CashuMint.swap = function (mintUrl, swapPayload, customRequest) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, data;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/swap'),
-                                method: 'POST',
-                                requestBody: swapPayload
-                            })];
-                    case 1:
-                        data = _b.sent();
-                        if (!(0, utils_js_1.isObj)(data) || !Array.isArray(data === null || data === void 0 ? void 0 : data.signatures)) {
-                            throw new Error((_a = data.detail) !== null && _a !== void 0 ? _a : 'bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Performs a swap operation with ecash inputs and outputs.
-     * @param swapPayload payload containing inputs and outputs
-     * @returns signed outputs
-     */
-    CashuMint.prototype.swap = function (swapPayload) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.swap(this._mintUrl, swapPayload, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Requests a new mint quote from the mint.
-     * @param mintUrl
-     * @param mintQuotePayload Payload for creating a new mint quote
-     * @param customRequest
-     * @returns the mint will create and return a new mint quote containing a payment request for the specified amount and unit
-     */
-    CashuMint.createMintQuote = function (mintUrl, mintQuotePayload, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, response, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/mint/quote/bolt11'),
-                                method: 'POST',
-                                requestBody: mintQuotePayload
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        data = (0, nut_04_js_1.handleMintQuoteResponseDeprecated)(response);
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Requests a new mint quote from the mint.
-     * @param mintQuotePayload Payload for creating a new mint quote
-     * @returns the mint will create and return a new mint quote containing a payment request for the specified amount and unit
-     */
-    CashuMint.prototype.createMintQuote = function (mintQuotePayload) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.createMintQuote(this._mintUrl, mintQuotePayload, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Gets an existing mint quote from the mint.
-     * @param mintUrl
-     * @param quote Quote ID
-     * @param customRequest
-     * @returns the mint will create and return a Lightning invoice for the specified amount
-     */
-    CashuMint.checkMintQuote = function (mintUrl, quote, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, response, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/mint/quote/bolt11', quote),
-                                method: 'GET'
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        data = (0, nut_04_js_1.handleMintQuoteResponseDeprecated)(response);
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Gets an existing mint quote from the mint.
-     * @param quote Quote ID
-     * @returns the mint will create and return a Lightning invoice for the specified amount
-     */
-    CashuMint.prototype.checkMintQuote = function (quote) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.checkMintQuote(this._mintUrl, quote, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Mints new tokens by requesting blind signatures on the provided outputs.
-     * @param mintUrl
-     * @param mintPayload Payload containing the outputs to get blind signatures on
-     * @param customRequest
-     * @returns serialized blinded signatures
-     */
-    CashuMint.mint = function (mintUrl, mintPayload, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/mint/bolt11'),
-                                method: 'POST',
-                                requestBody: mintPayload
-                            })];
-                    case 1:
-                        data = _a.sent();
-                        if (!(0, utils_js_1.isObj)(data) || !Array.isArray(data === null || data === void 0 ? void 0 : data.signatures)) {
-                            throw new Error('bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Mints new tokens by requesting blind signatures on the provided outputs.
-     * @param mintPayload Payload containing the outputs to get blind signatures on
-     * @returns serialized blinded signatures
-     */
-    CashuMint.prototype.mint = function (mintPayload) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.mint(this._mintUrl, mintPayload, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Requests a new melt quote from the mint.
-     * @param mintUrl
-     * @param MeltQuotePayload
-     * @returns
-     */
-    CashuMint.createMeltQuote = function (mintUrl, meltQuotePayload, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, response, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/melt/quote/bolt11'),
-                                method: 'POST',
-                                requestBody: meltQuotePayload
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        data = (0, nut_05_js_1.handleMeltQuoteResponseDeprecated)(response);
-                        if (!(0, utils_js_1.isObj)(data) ||
-                            typeof (data === null || data === void 0 ? void 0 : data.amount) !== 'number' ||
-                            typeof (data === null || data === void 0 ? void 0 : data.fee_reserve) !== 'number' ||
-                            typeof (data === null || data === void 0 ? void 0 : data.quote) !== 'string') {
-                            throw new Error('bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Requests a new melt quote from the mint.
-     * @param MeltQuotePayload
-     * @returns
-     */
-    CashuMint.prototype.createMeltQuote = function (meltQuotePayload) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.createMeltQuote(this._mintUrl, meltQuotePayload, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Gets an existing melt quote.
-     * @param mintUrl
-     * @param quote Quote ID
-     * @returns
-     */
-    CashuMint.checkMeltQuote = function (mintUrl, quote, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, response, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/melt/quote/bolt11', quote),
-                                method: 'GET'
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        data = (0, nut_05_js_1.handleMeltQuoteResponseDeprecated)(response);
-                        if (!(0, utils_js_1.isObj)(data) ||
-                            typeof (data === null || data === void 0 ? void 0 : data.amount) !== 'number' ||
-                            typeof (data === null || data === void 0 ? void 0 : data.fee_reserve) !== 'number' ||
-                            typeof (data === null || data === void 0 ? void 0 : data.quote) !== 'string' ||
-                            typeof (data === null || data === void 0 ? void 0 : data.state) !== 'string' ||
-                            !Object.values(index_js_1.MeltQuoteState).includes(data.state)) {
-                            throw new Error('bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Gets an existing melt quote.
-     * @param quote Quote ID
-     * @returns
-     */
-    CashuMint.prototype.checkMeltQuote = function (quote) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.checkMeltQuote(this._mintUrl, quote, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Requests the mint to pay for a Bolt11 payment request by providing ecash as inputs to be spent. The inputs contain the amount and the fee_reserves for a Lightning payment. The payload can also contain blank outputs in order to receive back overpaid Lightning fees.
-     * @param mintUrl
-     * @param meltPayload
-     * @param customRequest
-     * @returns
-     */
-    CashuMint.melt = function (mintUrl, meltPayload, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, response, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/melt/bolt11'),
-                                method: 'POST',
-                                requestBody: meltPayload
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        data = (0, nut_05_js_1.handleMeltQuoteResponseDeprecated)(response);
-                        if (!(0, utils_js_1.isObj)(data) ||
-                            typeof (data === null || data === void 0 ? void 0 : data.state) !== 'string' ||
-                            !Object.values(index_js_1.MeltQuoteState).includes(data.state)) {
-                            throw new Error('bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Ask mint to perform a melt operation. This pays a lightning invoice and destroys tokens matching its amount + fees
-     * @param meltPayload
-     * @returns
-     */
-    CashuMint.prototype.melt = function (meltPayload) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.melt(this._mintUrl, meltPayload, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Checks if specific proofs have already been redeemed
-     * @param mintUrl
-     * @param checkPayload
-     * @param customRequest
-     * @returns redeemed and unredeemed ordered list of booleans
-     */
-    CashuMint.check = function (mintUrl, checkPayload, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/checkstate'),
-                                method: 'POST',
-                                requestBody: checkPayload
-                            })];
-                    case 1:
-                        data = _a.sent();
-                        if (!(0, utils_js_1.isObj)(data) || !Array.isArray(data === null || data === void 0 ? void 0 : data.states)) {
-                            throw new Error('bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Get the mints public keys
-     * @param mintUrl
-     * @param keysetId optional param to get the keys for a specific keyset. If not specified, the keys from all active keysets are fetched
-     * @param customRequest
-     * @returns
-     */
-    CashuMint.getKeys = function (mintUrl, keysetId, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        // backwards compatibility for base64 encoded keyset ids
-                        if (keysetId) {
-                            // make the keysetId url safe
-                            keysetId = keysetId.replace(/\//g, '_').replace(/\+/g, '-');
-                        }
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: keysetId ? (0, utils_js_1.joinUrls)(mintUrl, '/v1/keys', keysetId) : (0, utils_js_1.joinUrls)(mintUrl, '/v1/keys')
-                            })];
-                    case 1:
-                        data = _a.sent();
-                        if (!(0, utils_js_1.isObj)(data) || !Array.isArray(data.keysets)) {
-                            throw new Error('bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    /**
-     * Get the mints public keys
-     * @param keysetId optional param to get the keys for a specific keyset. If not specified, the keys from all active keysets are fetched
-     * @returns the mints public keys
-     */
-    CashuMint.prototype.getKeys = function (keysetId, mintUrl) {
-        return __awaiter(this, void 0, void 0, function () {
-            var allKeys;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, CashuMint.getKeys(mintUrl || this._mintUrl, keysetId, this._customRequest)];
-                    case 1:
-                        allKeys = _a.sent();
-                        return [2 /*return*/, allKeys];
-                }
-            });
-        });
-    };
-    /**
-     * Get the mints keysets in no specific order
-     * @param mintUrl
-     * @param customRequest
-     * @returns all the mints past and current keysets.
-     */
-    CashuMint.getKeySets = function (mintUrl, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance;
-            return __generator(this, function (_a) {
-                requestInstance = customRequest || request_js_1.default;
-                return [2 /*return*/, requestInstance({ endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/keysets') })];
-            });
-        });
-    };
-    /**
-     * Get the mints keysets in no specific order
-     * @returns all the mints past and current keysets.
-     */
-    CashuMint.prototype.getKeySets = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.getKeySets(this._mintUrl, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Checks if specific proofs have already been redeemed
-     * @param checkPayload
-     * @returns redeemed and unredeemed ordered list of booleans
-     */
-    CashuMint.prototype.check = function (checkPayload) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.check(this._mintUrl, checkPayload, this._customRequest)];
-            });
-        });
-    };
-    CashuMint.restore = function (mintUrl, restorePayload, customRequest) {
-        return __awaiter(this, void 0, void 0, function () {
-            var requestInstance, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        requestInstance = customRequest || request_js_1.default;
-                        return [4 /*yield*/, requestInstance({
-                                endpoint: (0, utils_js_1.joinUrls)(mintUrl, '/v1/restore'),
-                                method: 'POST',
-                                requestBody: restorePayload
-                            })];
-                    case 1:
-                        data = _a.sent();
-                        if (!(0, utils_js_1.isObj)(data) || !Array.isArray(data === null || data === void 0 ? void 0 : data.outputs) || !Array.isArray(data === null || data === void 0 ? void 0 : data.promises)) {
-                            throw new Error('bad response');
-                        }
-                        return [2 /*return*/, data];
-                }
-            });
-        });
-    };
-    CashuMint.prototype.restore = function (restorePayload) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, CashuMint.restore(this._mintUrl, restorePayload, this._customRequest)];
-            });
-        });
-    };
-    /**
-     * Tries to establish a websocket connection with the websocket mint url according to NUT-17
-     */
-    CashuMint.prototype.connectWebSocket = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var mintUrl, wsSegment, e_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.ws) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.ws.ensureConnection()];
-                    case 1:
-                        _a.sent();
-                        return [3 /*break*/, 6];
-                    case 2:
-                        mintUrl = new URL(this._mintUrl);
-                        wsSegment = 'v1/ws';
-                        if (mintUrl.pathname) {
-                            if (mintUrl.pathname.endsWith('/')) {
-                                mintUrl.pathname += wsSegment;
-                            }
-                            else {
-                                mintUrl.pathname += '/' + wsSegment;
-                            }
-                        }
-                        this.ws = WSConnection_js_1.ConnectionManager.getInstance().getConnection("".concat(mintUrl.protocol === 'https:' ? 'wss' : 'ws', "://").concat(mintUrl.host).concat(mintUrl.pathname));
-                        _a.label = 3;
-                    case 3:
-                        _a.trys.push([3, 5, , 6]);
-                        return [4 /*yield*/, this.ws.connect()];
-                    case 4:
-                        _a.sent();
-                        return [3 /*break*/, 6];
-                    case 5:
-                        e_1 = _a.sent();
-                        console.log(e_1);
-                        throw new Error('Failed to connect to WebSocket...');
-                    case 6: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * Closes a websocket connection
-     */
-    CashuMint.prototype.disconnectWebSocket = function () {
-        if (this.ws) {
-            this.ws.close();
-        }
-    };
-    Object.defineProperty(CashuMint.prototype, "webSocketConnection", {
-        get: function () {
-            return this.ws;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return CashuMint;
-}());
-exports.CashuMint = CashuMint;
-
-
-/***/ }),
-
-/***/ 9811:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CashuWallet = void 0;
-var utils_1 = __webpack_require__(4248);
-var BlindedMessage_js_1 = __webpack_require__(8189);
-var index_js_1 = __webpack_require__(4748);
-var utils_js_1 = __webpack_require__(4561);
-var common_1 = __webpack_require__(4524);
-var client_1 = __webpack_require__(4962);
-var NUT09_1 = __webpack_require__(6410);
-var NUT11_1 = __webpack_require__(3763);
-var NUT12_1 = __webpack_require__(4118);
-var MintInfo_js_1 = __webpack_require__(2000);
-/**
- * The default number of proofs per denomination to keep in a wallet.
- */
-var DEFAULT_DENOMINATION_TARGET = 3;
-/**
- * The default unit for the wallet, if not specified in constructor.
- */
-var DEFAULT_UNIT = 'sat';
-/**
- * Class that represents a Cashu wallet.
- * This class should act as the entry point for this library
- */
-var CashuWallet = /** @class */ (function () {
-    /**
-     * @param mint Cashu mint instance is used to make api calls
-     * @param options.unit optionally set unit (default is 'sat')
-     * @param options.keys public keys from the mint (will be fetched from mint if not provided)
-     * @param options.keysets keysets from the mint (will be fetched from mint if not provided)
-     * @param options.mintInfo mint info from the mint (will be fetched from mint if not provided)
-     * @param options.denominationTarget target number proofs per denomination (default: see @constant DEFAULT_DENOMINATION_TARGET)
-     * @param options.bip39seed BIP39 seed for deterministic secrets.
-     * This can lead to poor performance, in which case the seed should be directly provided
-     */
-    function CashuWallet(mint, options) {
-        var _this = this;
-        this._keys = new Map();
-        this._keysets = [];
-        this._seed = undefined;
-        this._unit = DEFAULT_UNIT;
-        this._mintInfo = undefined;
-        this._denominationTarget = DEFAULT_DENOMINATION_TARGET;
-        this.mint = mint;
-        var keys = [];
-        if ((options === null || options === void 0 ? void 0 : options.keys) && !Array.isArray(options.keys)) {
-            keys = [options.keys];
-        }
-        else if ((options === null || options === void 0 ? void 0 : options.keys) && Array.isArray(options === null || options === void 0 ? void 0 : options.keys)) {
-            keys = options === null || options === void 0 ? void 0 : options.keys;
-        }
-        if (keys)
-            keys.forEach(function (key) { return _this._keys.set(key.id, key); });
-        if (options === null || options === void 0 ? void 0 : options.unit)
-            this._unit = options === null || options === void 0 ? void 0 : options.unit;
-        if (options === null || options === void 0 ? void 0 : options.keysets)
-            this._keysets = options.keysets;
-        if (options === null || options === void 0 ? void 0 : options.mintInfo)
-            this._mintInfo = new MintInfo_js_1.MintInfo(options.mintInfo);
-        if (options === null || options === void 0 ? void 0 : options.denominationTarget) {
-            this._denominationTarget = options.denominationTarget;
-        }
-        if (options === null || options === void 0 ? void 0 : options.bip39seed) {
-            if (options.bip39seed instanceof Uint8Array) {
-                this._seed = options.bip39seed;
-                return;
-            }
-            throw new Error('bip39seed must be a valid UInt8Array');
-        }
-    }
-    Object.defineProperty(CashuWallet.prototype, "unit", {
-        get: function () {
-            return this._unit;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CashuWallet.prototype, "keys", {
-        get: function () {
-            return this._keys;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CashuWallet.prototype, "keysetId", {
-        get: function () {
-            if (!this._keysetId) {
-                throw new Error('No keysetId set');
-            }
-            return this._keysetId;
-        },
-        set: function (keysetId) {
-            this._keysetId = keysetId;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CashuWallet.prototype, "keysets", {
-        get: function () {
-            return this._keysets;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CashuWallet.prototype, "mintInfo", {
-        get: function () {
-            if (!this._mintInfo) {
-                throw new Error('Mint info not loaded');
-            }
-            return this._mintInfo;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    /**
-     * Get information about the mint
-     * @returns mint info
-     */
-    CashuWallet.prototype.getMintInfo = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var infoRes;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.getInfo()];
-                    case 1:
-                        infoRes = _a.sent();
-                        this._mintInfo = new MintInfo_js_1.MintInfo(infoRes);
-                        return [2 /*return*/, this._mintInfo];
-                }
-            });
-        });
-    };
-    /**
-     * Load mint information, keysets and keys. This function can be called if no keysets are passed in the constructor
-     */
-    CashuWallet.prototype.loadMint = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.getMintInfo()];
-                    case 1:
-                        _a.sent();
-                        return [4 /*yield*/, this.getKeySets()];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.getKeys()];
-                    case 3:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * Choose a keyset to activate based on the lowest input fee
-     *
-     * Note: this function will filter out deprecated base64 keysets
-     *
-     * @param keysets keysets to choose from
-     * @returns active keyset
-     */
-    CashuWallet.prototype.getActiveKeyset = function (keysets) {
-        var activeKeysets = keysets.filter(function (k) { return k.active; });
-        // we only consider keyset IDs that start with "00"
-        activeKeysets = activeKeysets.filter(function (k) { return k.id.startsWith('00'); });
-        var activeKeyset = activeKeysets.sort(function (a, b) { var _a, _b; return ((_a = a.input_fee_ppk) !== null && _a !== void 0 ? _a : 0) - ((_b = b.input_fee_ppk) !== null && _b !== void 0 ? _b : 0); })[0];
-        if (!activeKeyset) {
-            throw new Error('No active keyset found');
-        }
-        return activeKeyset;
-    };
-    /**
-     * Get keysets from the mint with the unit of the wallet
-     * @returns keysets with wallet's unit
-     */
-    CashuWallet.prototype.getKeySets = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var allKeysets, unitKeysets;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.getKeySets()];
-                    case 1:
-                        allKeysets = _a.sent();
-                        unitKeysets = allKeysets.keysets.filter(function (k) { return k.unit === _this._unit; });
-                        this._keysets = unitKeysets;
-                        return [2 /*return*/, this._keysets];
-                }
-            });
-        });
-    };
-    /**
-     * Get all active keys from the mint and set the keyset with the lowest fees as the active wallet keyset.
-     * @returns keyset
-     */
-    CashuWallet.prototype.getAllKeys = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var keysets;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.getKeys()];
-                    case 1:
-                        keysets = _a.sent();
-                        this._keys = new Map(keysets.keysets.map(function (k) { return [k.id, k]; }));
-                        this.keysetId = this.getActiveKeyset(this._keysets).id;
-                        return [2 /*return*/, keysets.keysets];
-                }
-            });
-        });
-    };
-    /**
-     * Get public keys from the mint. If keys were already fetched, it will return those.
-     *
-     * If `keysetId` is set, it will fetch and return that specific keyset.
-     * Otherwise, we select an active keyset with the unit of the wallet.
-     *
-     * @param keysetId optional keysetId to get keys for
-     * @param forceRefresh? if set to true, it will force refresh the keyset from the mint
-     * @returns keyset
-     */
-    CashuWallet.prototype.getKeys = function (keysetId, forceRefresh) {
-        return __awaiter(this, void 0, void 0, function () {
-            var localKeyset, keys;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!(!(this._keysets.length > 0) || forceRefresh)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.getKeySets()];
-                    case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2:
-                        // no keyset id is chosen, let's choose one
-                        if (!keysetId) {
-                            localKeyset = this.getActiveKeyset(this._keysets);
-                            keysetId = localKeyset.id;
-                        }
-                        if (!!this._keysets.find(function (k) { return k.id === keysetId; })) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.getKeySets()];
-                    case 3:
-                        _a.sent();
-                        if (!this._keysets.find(function (k) { return k.id === keysetId; })) {
-                            throw new Error("could not initialize keys. No keyset with id '".concat(keysetId, "' found"));
-                        }
-                        _a.label = 4;
-                    case 4:
-                        if (!!this._keys.get(keysetId)) return [3 /*break*/, 6];
-                        return [4 /*yield*/, this.mint.getKeys(keysetId)];
-                    case 5:
-                        keys = _a.sent();
-                        this._keys.set(keysetId, keys.keysets[0]);
-                        _a.label = 6;
-                    case 6:
-                        // set and return
-                        this.keysetId = keysetId;
-                        return [2 /*return*/, this._keys.get(keysetId)];
-                }
-            });
-        });
-    };
-    /**
-     * Receive an encoded or raw Cashu token (only supports single tokens. It will only process the first token in the token array)
-     * @param {(string|Token)} token - Cashu token, either as string or decoded
-     * @param options.keysetId? override the keysetId derived from the current mintKeys with a custom one. This should be a keyset that was fetched from the `/keysets` endpoint
-     * @param options.outputAmounts? optionally specify the output's amounts to keep and to send.
-     * @param options.proofsWeHave? optionally provide all currently stored proofs of this mint. Cashu-ts will use them to derive the optimal output amounts
-     * @param options.counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param options.pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
-     * @param options.privkey? will create a signature on the @param token secrets if set
-     * @param options.requireDleq? will check each proof for DLEQ proofs. Reject the token if any one of them can't be verified.
-     * @returns New token with newly created proofs, token entries that had errors
-     */
-    CashuWallet.prototype.receive = function (token, options) {
-        return __awaiter(this, void 0, void 0, function () {
-            var keys, amount, _a, payload, blindingData, signatures, freshProofs;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        if (typeof token === 'string') {
-                            token = (0, utils_js_1.getDecodedToken)(token);
-                        }
-                        return [4 /*yield*/, this.getKeys(options === null || options === void 0 ? void 0 : options.keysetId)];
-                    case 1:
-                        keys = _b.sent();
-                        if (options === null || options === void 0 ? void 0 : options.requireDleq) {
-                            if (token.proofs.some(function (p) { return !(0, utils_js_1.hasValidDleq)(p, keys); })) {
-                                throw new Error('Token contains proofs with invalid DLEQ');
-                            }
-                        }
-                        amount = (0, utils_js_1.sumProofs)(token.proofs) - this.getFeesForProofs(token.proofs);
-                        _a = this.createSwapPayload(amount, token.proofs, keys, options === null || options === void 0 ? void 0 : options.outputAmounts, options === null || options === void 0 ? void 0 : options.counter, options === null || options === void 0 ? void 0 : options.pubkey, options === null || options === void 0 ? void 0 : options.privkey), payload = _a.payload, blindingData = _a.blindingData;
-                        return [4 /*yield*/, this.mint.swap(payload)];
-                    case 2:
-                        signatures = (_b.sent()).signatures;
-                        freshProofs = this.constructProofs(signatures, blindingData.blindingFactors, blindingData.secrets, keys);
-                        return [2 /*return*/, freshProofs];
-                }
-            });
-        });
-    };
-    /**
-     * Send proofs of a given amount, by providing at least the required amount of proofs
-     * @param amount amount to send
-     * @param proofs array of proofs (accumulated amount of proofs must be >= than amount)
-     * @param options.outputAmounts? optionally specify the output's amounts to keep and send.
-     * @param options.counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param options.proofsWeHave? optionally provide all currently stored proofs of this mint. Cashu-ts will use them to derive the optimal output amounts
-     * @param options.pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
-     * @param options.privkey? will create a signature on the output secrets if set
-     * @param options.keysetId? override the keysetId derived from the current mintKeys with a custom one. This should be a keyset that was fetched from the `/keysets` endpoint
-     * @param options.offline? optionally send proofs offline.
-     * @param options.includeFees? optionally include fees in the response.
-     * @param options.includeDleq? optionally include DLEQ proof in the proofs to send.
-     * @returns {SendResponse}
-     */
-    CashuWallet.prototype.send = function (amount, proofs, options) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function () {
-            var _b, keepProofsOffline, sendProofOffline, expectedFee, _c, keepProofsSelect, sendProofs, _d, keep, send;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
-                    case 0:
-                        if (options === null || options === void 0 ? void 0 : options.includeDleq) {
-                            proofs = proofs.filter(function (p) { return p.dleq != undefined; });
-                        }
-                        if ((0, utils_js_1.sumProofs)(proofs) < amount) {
-                            throw new Error('Not enough funds available to send');
-                        }
-                        _b = this.selectProofsToSend(proofs, amount, options === null || options === void 0 ? void 0 : options.includeFees), keepProofsOffline = _b.keep, sendProofOffline = _b.send;
-                        expectedFee = (options === null || options === void 0 ? void 0 : options.includeFees) ? this.getFeesForProofs(sendProofOffline) : 0;
-                        if (!(!(options === null || options === void 0 ? void 0 : options.offline) &&
-                            ((0, utils_js_1.sumProofs)(sendProofOffline) != amount + expectedFee || // if the exact amount cannot be selected
-                                (options === null || options === void 0 ? void 0 : options.outputAmounts) ||
-                                (options === null || options === void 0 ? void 0 : options.pubkey) ||
-                                (options === null || options === void 0 ? void 0 : options.privkey) ||
-                                (options === null || options === void 0 ? void 0 : options.keysetId))) // these options require a swap
-                        ) return [3 /*break*/, 2]; // these options require a swap
-                        _c = this.selectProofsToSend(proofs, amount, true), keepProofsSelect = _c.keep, sendProofs = _c.send;
-                        (_a = options === null || options === void 0 ? void 0 : options.proofsWeHave) === null || _a === void 0 ? void 0 : _a.push.apply(_a, keepProofsSelect);
-                        return [4 /*yield*/, this.swap(amount, sendProofs, options)];
-                    case 1:
-                        _d = _e.sent(), keep = _d.keep, send = _d.send;
-                        keep = keepProofsSelect.concat(keep);
-                        if (!(options === null || options === void 0 ? void 0 : options.includeDleq)) {
-                            send = (0, utils_js_1.stripDleq)(send);
-                        }
-                        return [2 /*return*/, { keep: keep, send: send }];
-                    case 2:
-                        if ((0, utils_js_1.sumProofs)(sendProofOffline) < amount + expectedFee) {
-                            throw new Error('Not enough funds available to send');
-                        }
-                        if (!(options === null || options === void 0 ? void 0 : options.includeDleq)) {
-                            return [2 /*return*/, { keep: keepProofsOffline, send: (0, utils_js_1.stripDleq)(sendProofOffline) }];
-                        }
-                        return [2 /*return*/, { keep: keepProofsOffline, send: sendProofOffline }];
-                }
-            });
-        });
-    };
-    CashuWallet.prototype.selectProofsToSend = function (proofs, amountToSend, includeFees) {
-        var sortedProofs = proofs.sort(function (a, b) { return a.amount - b.amount; });
-        var smallerProofs = sortedProofs
-            .filter(function (p) { return p.amount <= amountToSend; })
-            .sort(function (a, b) { return b.amount - a.amount; });
-        var biggerProofs = sortedProofs
-            .filter(function (p) { return p.amount > amountToSend; })
-            .sort(function (a, b) { return a.amount - b.amount; });
-        var nextBigger = biggerProofs[0];
-        if (!smallerProofs.length && nextBigger) {
-            return {
-                keep: proofs.filter(function (p) { return p.secret !== nextBigger.secret; }),
-                send: [nextBigger]
-            };
-        }
-        if (!smallerProofs.length && !nextBigger) {
-            return { keep: proofs, send: [] };
-        }
-        var remainder = amountToSend;
-        var selectedProofs = [smallerProofs[0]];
-        var returnedProofs = [];
-        var feePPK = includeFees ? this.getFeesForProofs(selectedProofs) : 0;
-        remainder -= selectedProofs[0].amount - feePPK / 1000;
-        if (remainder > 0) {
-            var _a = this.selectProofsToSend(smallerProofs.slice(1), remainder, includeFees), keep = _a.keep, send = _a.send;
-            selectedProofs.push.apply(selectedProofs, send);
-            returnedProofs.push.apply(returnedProofs, keep);
-        }
-        var selectedFeePPK = includeFees ? this.getFeesForProofs(selectedProofs) : 0;
-        if ((0, utils_js_1.sumProofs)(selectedProofs) < amountToSend + selectedFeePPK && nextBigger) {
-            selectedProofs = [nextBigger];
-        }
-        return {
-            keep: proofs.filter(function (p) { return !selectedProofs.includes(p); }),
-            send: selectedProofs
-        };
-    };
-    /**
-     * calculates the fees based on inputs (proofs)
-     * @param proofs input proofs to calculate fees for
-     * @returns fee amount
-     */
-    CashuWallet.prototype.getFeesForProofs = function (proofs) {
-        var _this = this;
-        if (!this._keysets.length) {
-            throw new Error('Could not calculate fees. No keysets found');
-        }
-        var keysetIds = new Set(proofs.map(function (p) { return p.id; }));
-        keysetIds.forEach(function (id) {
-            if (!_this._keysets.find(function (k) { return k.id === id; })) {
-                throw new Error("Could not calculate fees. No keyset found with id: ".concat(id));
-            }
-        });
-        var fees = Math.floor(Math.max((proofs.reduce(function (total, curr) { var _a; return total + (((_a = _this._keysets.find(function (k) { return k.id === curr.id; })) === null || _a === void 0 ? void 0 : _a.input_fee_ppk) || 0); }, 0) +
-            999) /
-            1000, 0));
-        return fees;
-    };
-    /**
-     * calculates the fees based on inputs for a given keyset
-     * @param nInputs number of inputs
-     * @param keysetId keysetId used to lookup `input_fee_ppk`
-     * @returns fee amount
-     */
-    CashuWallet.prototype.getFeesForKeyset = function (nInputs, keysetId) {
-        var _a;
-        var fees = Math.floor(Math.max((nInputs * (((_a = this._keysets.find(function (k) { return k.id === keysetId; })) === null || _a === void 0 ? void 0 : _a.input_fee_ppk) || 0) +
-            999) /
-            1000, 0));
-        return fees;
-    };
-    /**
-     * Splits and creates sendable tokens
-     * if no amount is specified, the amount is implied by the cumulative amount of all proofs
-     * if both amount and preference are set, but the preference cannot fulfill the amount, then we use the default split
-     * @param amount amount to send while performing the optimal split (least proofs possible). can be set to undefined if preference is set
-     * @param proofs proofs matching that amount
-     * @param options.outputAmounts? optionally specify the output's amounts to keep and to send.
-     * @param options.counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param options.keysetId? override the keysetId derived from the current mintKeys with a custom one. This should be a keyset that was fetched from the `/keysets` endpoint
-     * @param options.includeFees? include estimated fees for the receiver to receive the proofs
-     * @param options.proofsWeHave? optionally provide all currently stored proofs of this mint. Cashu-ts will use them to derive the optimal output amounts
-     * @param options.pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
-     * @param options.privkey? will create a signature on the @param proofs secrets if set
-     * @returns promise of the change- and send-proofs
-     */
-    CashuWallet.prototype.swap = function (amount, proofs, options) {
-        var _a, _b, _c;
-        return __awaiter(this, void 0, void 0, function () {
-            var keyset, proofsToSend, amountToSend, amountAvailable, amountToKeep, sendAmounts, outputFee, sendAmountsFee, keepAmounts, _d, payload, blindingData, signatures, swapProofs, splitProofsToKeep, splitProofsToSend, amountToKeepCounter;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
-                    case 0:
-                        if (!options)
-                            options = {};
-                        return [4 /*yield*/, this.getKeys(options.keysetId)];
-                    case 1:
-                        keyset = _e.sent();
-                        proofsToSend = proofs;
-                        amountToSend = amount;
-                        amountAvailable = (0, utils_js_1.sumProofs)(proofs);
-                        amountToKeep = amountAvailable - amountToSend - this.getFeesForProofs(proofsToSend);
-                        sendAmounts = ((_a = options === null || options === void 0 ? void 0 : options.outputAmounts) === null || _a === void 0 ? void 0 : _a.sendAmounts) || (0, utils_js_1.splitAmount)(amountToSend, keyset.keys);
-                        // include the fees to spend the the outputs of the swap
-                        if (options === null || options === void 0 ? void 0 : options.includeFees) {
-                            outputFee = this.getFeesForKeyset(sendAmounts.length, keyset.id);
-                            sendAmountsFee = (0, utils_js_1.splitAmount)(outputFee, keyset.keys);
-                            while (this.getFeesForKeyset(sendAmounts.concat(sendAmountsFee).length, keyset.id) > outputFee) {
-                                outputFee++;
-                                sendAmountsFee = (0, utils_js_1.splitAmount)(outputFee, keyset.keys);
-                            }
-                            sendAmounts = sendAmounts.concat(sendAmountsFee);
-                            amountToSend += outputFee;
-                            amountToKeep -= outputFee;
-                        }
-                        if (options && !((_b = options.outputAmounts) === null || _b === void 0 ? void 0 : _b.keepAmounts) && options.proofsWeHave) {
-                            keepAmounts = (0, utils_js_1.getKeepAmounts)(options.proofsWeHave, amountToKeep, keyset.keys, this._denominationTarget);
-                        }
-                        else if (options.outputAmounts) {
-                            if (((_c = options.outputAmounts.keepAmounts) === null || _c === void 0 ? void 0 : _c.reduce(function (a, b) { return a + b; }, 0)) !=
-                                amountToKeep) {
-                                throw new Error('Keep amounts do not match amount to keep');
-                            }
-                            keepAmounts = options.outputAmounts.keepAmounts;
-                        }
-                        if (amountToSend + this.getFeesForProofs(proofsToSend) > amountAvailable) {
-                            console.error("Not enough funds available (".concat(amountAvailable, ") for swap amountToSend: ").concat(amountToSend, " + fee: ").concat(this.getFeesForProofs(proofsToSend), " | length: ").concat(proofsToSend.length));
-                            throw new Error("Not enough funds available for swap");
-                        }
-                        if (amountToSend + this.getFeesForProofs(proofsToSend) + amountToKeep != amountAvailable) {
-                            throw new Error('Amounts do not match for swap');
-                        }
-                        options.outputAmounts = {
-                            keepAmounts: keepAmounts,
-                            sendAmounts: sendAmounts
-                        };
-                        _d = this.createSwapPayload(amountToSend, proofsToSend, keyset, options === null || options === void 0 ? void 0 : options.outputAmounts, options === null || options === void 0 ? void 0 : options.counter, options === null || options === void 0 ? void 0 : options.pubkey, options === null || options === void 0 ? void 0 : options.privkey), payload = _d.payload, blindingData = _d.blindingData;
-                        return [4 /*yield*/, this.mint.swap(payload)];
-                    case 2:
-                        signatures = (_e.sent()).signatures;
-                        swapProofs = this.constructProofs(signatures, blindingData.blindingFactors, blindingData.secrets, keyset);
-                        splitProofsToKeep = [];
-                        splitProofsToSend = [];
-                        amountToKeepCounter = 0;
-                        swapProofs.forEach(function (proof) {
-                            if (amountToKeepCounter < amountToKeep) {
-                                amountToKeepCounter += proof.amount;
-                                splitProofsToKeep.push(proof);
-                                return;
-                            }
-                            splitProofsToSend.push(proof);
-                        });
-                        return [2 /*return*/, {
-                                keep: splitProofsToKeep,
-                                send: splitProofsToSend
-                            }];
-                }
-            });
-        });
-    };
-    /**
-     * Regenerates
-     * @param start set starting point for count (first cycle for each keyset should usually be 0)
-     * @param count set number of blinded messages that should be generated
-     * @param options.keysetId set a custom keysetId to restore from. keysetIds can be loaded with `CashuMint.getKeySets()`
-     */
-    CashuWallet.prototype.restore = function (start, count, options) {
-        return __awaiter(this, void 0, void 0, function () {
-            var keys, amounts, _a, blindedMessages, blindingFactors, secrets, _b, outputs, promises, validBlindingFactors, validSecrets;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0: return [4 /*yield*/, this.getKeys(options === null || options === void 0 ? void 0 : options.keysetId)];
-                    case 1:
-                        keys = _c.sent();
-                        if (!this._seed) {
-                            throw new Error('CashuWallet must be initialized with a seed to use restore');
-                        }
-                        amounts = Array(count).fill(0);
-                        _a = this.createBlindedMessages(amounts, keys.id, start), blindedMessages = _a.blindedMessages, blindingFactors = _a.blindingFactors, secrets = _a.secrets;
-                        return [4 /*yield*/, this.mint.restore({ outputs: blindedMessages })];
-                    case 2:
-                        _b = _c.sent(), outputs = _b.outputs, promises = _b.promises;
-                        validBlindingFactors = blindingFactors.filter(function (_, i) {
-                            return outputs.map(function (o) { return o.B_; }).includes(blindedMessages[i].B_);
-                        });
-                        validSecrets = secrets.filter(function (_, i) {
-                            return outputs.map(function (o) { return o.B_; }).includes(blindedMessages[i].B_);
-                        });
-                        return [2 /*return*/, {
-                                proofs: this.constructProofs(promises, validBlindingFactors, validSecrets, keys)
-                            }];
-                }
-            });
-        });
-    };
-    /**
-     * Requests a mint quote form the mint. Response returns a Lightning payment request for the requested given amount and unit.
-     * @param amount Amount requesting for mint.
-     * @param description optional description for the mint quote
-     * @returns the mint will return a mint quote with a Lightning invoice for minting tokens of the specified amount and unit
-     */
-    CashuWallet.prototype.createMintQuote = function (amount, description) {
-        return __awaiter(this, void 0, void 0, function () {
-            var mintQuotePayload;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        mintQuotePayload = {
-                            unit: this._unit,
-                            amount: amount,
-                            description: description
-                        };
-                        return [4 /*yield*/, this.mint.createMintQuote(mintQuotePayload)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    /**
-     * Gets an existing mint quote from the mint.
-     * @param quote Quote ID
-     * @returns the mint will create and return a Lightning invoice for the specified amount
-     */
-    CashuWallet.prototype.checkMintQuote = function (quote) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.checkMintQuote(quote)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    /**
-     * Mint proofs for a given mint quote
-     * @param amount amount to request
-     * @param quote ID of mint quote
-     * @param options.keysetId? optionally set keysetId for blank outputs for returned change.
-     * @param options.preference? Deprecated. Use `outputAmounts` instead. Optional preference for splitting proofs into specific amounts.
-     * @param options.outputAmounts? optionally specify the output's amounts to keep and to send.
-     * @param options.counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param options.pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
-     * @returns proofs
-     */
-    CashuWallet.prototype.mintProofs = function (amount, quote, options) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function () {
-            var keyset, _b, blindedMessages, secrets, blindingFactors, mintPayload, signatures;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0: return [4 /*yield*/, this.getKeys(options === null || options === void 0 ? void 0 : options.keysetId)];
-                    case 1:
-                        keyset = _c.sent();
-                        if (!(options === null || options === void 0 ? void 0 : options.outputAmounts) && (options === null || options === void 0 ? void 0 : options.proofsWeHave)) {
-                            options.outputAmounts = {
-                                keepAmounts: (0, utils_js_1.getKeepAmounts)(options.proofsWeHave, amount, keyset.keys, this._denominationTarget),
-                                sendAmounts: []
-                            };
-                        }
-                        _b = this.createRandomBlindedMessages(amount, keyset, (_a = options === null || options === void 0 ? void 0 : options.outputAmounts) === null || _a === void 0 ? void 0 : _a.keepAmounts, options === null || options === void 0 ? void 0 : options.counter, options === null || options === void 0 ? void 0 : options.pubkey), blindedMessages = _b.blindedMessages, secrets = _b.secrets, blindingFactors = _b.blindingFactors;
-                        mintPayload = {
-                            outputs: blindedMessages,
-                            quote: quote
-                        };
-                        return [4 /*yield*/, this.mint.mint(mintPayload)];
-                    case 2:
-                        signatures = (_c.sent()).signatures;
-                        return [2 /*return*/, this.constructProofs(signatures, blindingFactors, secrets, keyset)];
-                }
-            });
-        });
-    };
-    /**
-     * Requests a melt quote from the mint. Response returns amount and fees for a given unit in order to pay a Lightning invoice.
-     * @param invoice LN invoice that needs to get a fee estimate
-     * @returns the mint will create and return a melt quote for the invoice with an amount and fee reserve
-     */
-    CashuWallet.prototype.createMeltQuote = function (invoice) {
-        return __awaiter(this, void 0, void 0, function () {
-            var meltQuotePayload, meltQuote;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        meltQuotePayload = {
-                            unit: this._unit,
-                            request: invoice
-                        };
-                        return [4 /*yield*/, this.mint.createMeltQuote(meltQuotePayload)];
-                    case 1:
-                        meltQuote = _a.sent();
-                        return [2 /*return*/, meltQuote];
-                }
-            });
-        });
-    };
-    /**
-     * Return an existing melt quote from the mint.
-     * @param quote ID of the melt quote
-     * @returns the mint will return an existing melt quote
-     */
-    CashuWallet.prototype.checkMeltQuote = function (quote) {
-        return __awaiter(this, void 0, void 0, function () {
-            var meltQuote;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.checkMeltQuote(quote)];
-                    case 1:
-                        meltQuote = _a.sent();
-                        return [2 /*return*/, meltQuote];
-                }
-            });
-        });
-    };
-    /**
-     * Melt proofs for a melt quote. proofsToSend must be at least amount+fee_reserve form the melt quote. This function does not perform coin selection!.
-     * Returns melt quote and change proofs
-     * @param meltQuote ID of the melt quote
-     * @param proofsToSend proofs to melt
-     * @param options.keysetId? optionally set keysetId for blank outputs for returned change.
-     * @param options.counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param options.privkey? optionally set a private key to unlock P2PK locked secrets
-     * @returns
-     */
-    CashuWallet.prototype.meltProofs = function (meltQuote, proofsToSend, options) {
-        return __awaiter(this, void 0, void 0, function () {
-            var keys, _a, blindedMessages, secrets, blindingFactors, meltPayload, meltResponse, change;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.getKeys(options === null || options === void 0 ? void 0 : options.keysetId)];
-                    case 1:
-                        keys = _b.sent();
-                        _a = this.createBlankOutputs((0, utils_js_1.sumProofs)(proofsToSend) - meltQuote.amount, keys.id, options === null || options === void 0 ? void 0 : options.counter), blindedMessages = _a.blindedMessages, secrets = _a.secrets, blindingFactors = _a.blindingFactors;
-                        if ((options === null || options === void 0 ? void 0 : options.privkey) != undefined) {
-                            proofsToSend = (0, NUT11_1.getSignedProofs)(proofsToSend.map(function (p) {
-                                return {
-                                    amount: p.amount,
-                                    C: (0, common_1.pointFromHex)(p.C),
-                                    id: p.id,
-                                    secret: new TextEncoder().encode(p.secret)
-                                };
-                            }), options.privkey).map(function (p) { return (0, client_1.serializeProof)(p); });
-                        }
-                        proofsToSend = (0, utils_js_1.stripDleq)(proofsToSend);
-                        meltPayload = {
-                            quote: meltQuote.quote,
-                            inputs: proofsToSend,
-                            outputs: __spreadArray([], blindedMessages, true)
-                        };
-                        return [4 /*yield*/, this.mint.melt(meltPayload)];
-                    case 2:
-                        meltResponse = _b.sent();
-                        change = [];
-                        if (meltResponse.change) {
-                            change = this.constructProofs(meltResponse.change, blindingFactors, secrets, keys);
-                        }
-                        return [2 /*return*/, {
-                                quote: meltResponse,
-                                change: change
-                            }];
-                }
-            });
-        });
-    };
-    /**
-     * Creates a split payload
-     * @param amount amount to send
-     * @param proofsToSend proofs to split*
-     * @param outputAmounts? optionally specify the output's amounts to keep and to send.
-     * @param counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
-     * @param privkey? will create a signature on the @param proofsToSend secrets if set
-     * @returns
-     */
-    CashuWallet.prototype.createSwapPayload = function (amount, proofsToSend, keyset, outputAmounts, counter, pubkey, privkey) {
-        var totalAmount = proofsToSend.reduce(function (total, curr) { return total + curr.amount; }, 0);
-        if (outputAmounts && outputAmounts.sendAmounts && !outputAmounts.keepAmounts) {
-            outputAmounts.keepAmounts = (0, utils_js_1.splitAmount)(totalAmount - amount - this.getFeesForProofs(proofsToSend), keyset.keys);
-        }
-        var keepBlindedMessages = this.createRandomBlindedMessages(totalAmount - amount - this.getFeesForProofs(proofsToSend), keyset, outputAmounts === null || outputAmounts === void 0 ? void 0 : outputAmounts.keepAmounts, counter);
-        if (this._seed && counter) {
-            counter = counter + keepBlindedMessages.secrets.length;
-        }
-        var sendBlindedMessages = this.createRandomBlindedMessages(amount, keyset, outputAmounts === null || outputAmounts === void 0 ? void 0 : outputAmounts.sendAmounts, counter, pubkey);
-        if (privkey) {
-            proofsToSend = (0, NUT11_1.getSignedProofs)(proofsToSend.map(function (p) {
-                return {
-                    amount: p.amount,
-                    C: (0, common_1.pointFromHex)(p.C),
-                    id: p.id,
-                    secret: new TextEncoder().encode(p.secret)
-                };
-            }), privkey).map(function (p) { return (0, client_1.serializeProof)(p); });
-        }
-        proofsToSend = (0, utils_js_1.stripDleq)(proofsToSend);
-        // join keepBlindedMessages and sendBlindedMessages
-        var blindingData = {
-            blindedMessages: __spreadArray(__spreadArray([], keepBlindedMessages.blindedMessages, true), sendBlindedMessages.blindedMessages, true),
-            secrets: __spreadArray(__spreadArray([], keepBlindedMessages.secrets, true), sendBlindedMessages.secrets, true),
-            blindingFactors: __spreadArray(__spreadArray([], keepBlindedMessages.blindingFactors, true), sendBlindedMessages.blindingFactors, true)
-        };
-        var payload = {
-            inputs: proofsToSend,
-            outputs: __spreadArray([], blindingData.blindedMessages, true)
-        };
-        return { payload: payload, blindingData: blindingData };
-    };
-    /**
-     * Get an array of the states of proofs from the mint (as an array of CheckStateEnum's)
-     * @param proofs (only the `secret` field is required)
-     * @returns
-     */
-    CashuWallet.prototype.checkProofsStates = function (proofs) {
-        return __awaiter(this, void 0, void 0, function () {
-            var enc, Ys, BATCH_SIZE, states, _loop_1, this_1, i;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        enc = new TextEncoder();
-                        Ys = proofs.map(function (p) { return (0, common_1.hashToCurve)(enc.encode(p.secret)).toHex(true); });
-                        BATCH_SIZE = 100;
-                        states = [];
-                        _loop_1 = function (i) {
-                            var YsSlice, batchStates, stateMap, j, state;
-                            return __generator(this, function (_b) {
-                                switch (_b.label) {
-                                    case 0:
-                                        YsSlice = Ys.slice(i, i + BATCH_SIZE);
-                                        return [4 /*yield*/, this_1.mint.check({
-                                                Ys: YsSlice
-                                            })];
-                                    case 1:
-                                        batchStates = (_b.sent()).states;
-                                        stateMap = {};
-                                        batchStates.forEach(function (s) {
-                                            stateMap[s.Y] = s;
-                                        });
-                                        for (j = 0; j < YsSlice.length; j++) {
-                                            state = stateMap[YsSlice[j]];
-                                            if (!state) {
-                                                throw new Error('Could not find state for proof with Y: ' + YsSlice[j]);
-                                            }
-                                            states.push(state);
-                                        }
-                                        return [2 /*return*/];
-                                }
-                            });
-                        };
-                        this_1 = this;
-                        i = 0;
-                        _a.label = 1;
-                    case 1:
-                        if (!(i < Ys.length)) return [3 /*break*/, 4];
-                        return [5 /*yield**/, _loop_1(i)];
-                    case 2:
-                        _a.sent();
-                        _a.label = 3;
-                    case 3:
-                        i += BATCH_SIZE;
-                        return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/, states];
-                }
-            });
-        });
-    };
-    /**
-     * Register a callback to be called whenever a mint quote's state changes
-     * @param quoteIds List of mint quote IDs that should be subscribed to
-     * @param callback Callback function that will be called whenever a mint quote state changes
-     * @param errorCallback
-     * @returns
-     */
-    CashuWallet.prototype.onMintQuoteUpdates = function (quoteIds, callback, errorCallback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var subId;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.connectWebSocket()];
-                    case 1:
-                        _a.sent();
-                        if (!this.mint.webSocketConnection) {
-                            throw new Error('failed to establish WebSocket connection.');
-                        }
-                        subId = this.mint.webSocketConnection.createSubscription({ kind: 'bolt11_mint_quote', filters: quoteIds }, callback, errorCallback);
-                        return [2 /*return*/, function () {
-                                var _a;
-                                (_a = _this.mint.webSocketConnection) === null || _a === void 0 ? void 0 : _a.cancelSubscription(subId, callback);
-                            }];
-                }
-            });
-        });
-    };
-    /**
-     * Register a callback to be called whenever a melt quote's state changes
-     * @param quoteIds List of melt quote IDs that should be subscribed to
-     * @param callback Callback function that will be called whenever a melt quote state changes
-     * @param errorCallback
-     * @returns
-     */
-    CashuWallet.prototype.onMeltQuotePaid = function (quoteId, callback, errorCallback) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.onMeltQuoteUpdates([quoteId], function (p) {
-                        if (p.state === index_js_1.MeltQuoteState.PAID) {
-                            callback(p);
-                        }
-                    }, errorCallback)];
-            });
-        });
-    };
-    /**
-     * Register a callback to be called when a single mint quote gets paid
-     * @param quoteId Mint quote id that should be subscribed to
-     * @param callback Callback function that will be called when this mint quote gets paid
-     * @param errorCallback
-     * @returns
-     */
-    CashuWallet.prototype.onMintQuotePaid = function (quoteId, callback, errorCallback) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.onMintQuoteUpdates([quoteId], function (p) {
-                        if (p.state === index_js_1.MintQuoteState.PAID) {
-                            callback(p);
-                        }
-                    }, errorCallback)];
-            });
-        });
-    };
-    /**
-     * Register a callback to be called when a single melt quote gets paid
-     * @param quoteId Melt quote id that should be subscribed to
-     * @param callback Callback function that will be called when this melt quote gets paid
-     * @param errorCallback
-     * @returns
-     */
-    CashuWallet.prototype.onMeltQuoteUpdates = function (quoteIds, callback, errorCallback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var subId;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.connectWebSocket()];
-                    case 1:
-                        _a.sent();
-                        if (!this.mint.webSocketConnection) {
-                            throw new Error('failed to establish WebSocket connection.');
-                        }
-                        subId = this.mint.webSocketConnection.createSubscription({ kind: 'bolt11_melt_quote', filters: quoteIds }, callback, errorCallback);
-                        return [2 /*return*/, function () {
-                                var _a;
-                                (_a = _this.mint.webSocketConnection) === null || _a === void 0 ? void 0 : _a.cancelSubscription(subId, callback);
-                            }];
-                }
-            });
-        });
-    };
-    /**
-     * Register a callback to be called whenever a subscribed proof state changes
-     * @param proofs List of proofs that should be subscribed to
-     * @param callback Callback function that will be called whenever a proof's state changes
-     * @param errorCallback
-     * @returns
-     */
-    CashuWallet.prototype.onProofStateUpdates = function (proofs, callback, errorCallback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var enc, proofMap, i, y, ys, subId;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.mint.connectWebSocket()];
-                    case 1:
-                        _a.sent();
-                        if (!this.mint.webSocketConnection) {
-                            throw new Error('failed to establish WebSocket connection.');
-                        }
-                        enc = new TextEncoder();
-                        proofMap = {};
-                        for (i = 0; i < proofs.length; i++) {
-                            y = (0, common_1.hashToCurve)(enc.encode(proofs[i].secret)).toHex(true);
-                            proofMap[y] = proofs[i];
-                        }
-                        ys = Object.keys(proofMap);
-                        subId = this.mint.webSocketConnection.createSubscription({ kind: 'proof_state', filters: ys }, function (p) {
-                            callback(__assign(__assign({}, p), { proof: proofMap[p.Y] }));
-                        }, errorCallback);
-                        return [2 /*return*/, function () {
-                                var _a;
-                                (_a = _this.mint.webSocketConnection) === null || _a === void 0 ? void 0 : _a.cancelSubscription(subId, callback);
-                            }];
-                }
-            });
-        });
-    };
-    /**
-     * Creates blinded messages for a given amount
-     * @param amount amount to create blinded messages for
-     * @param split optional preference for splitting proofs into specific amounts. overrides amount param
-     * @param keyksetId? override the keysetId derived from the current mintKeys with a custom one. This should be a keyset that was fetched from the `/keysets` endpoint
-     * @param counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
-     * @returns blinded messages, secrets, rs, and amounts
-     */
-    CashuWallet.prototype.createRandomBlindedMessages = function (amount, keyset, split, counter, pubkey) {
-        var amounts = (0, utils_js_1.splitAmount)(amount, keyset.keys, split);
-        return this.createBlindedMessages(amounts, keyset.id, counter, pubkey);
-    };
-    /**
-     * Creates blinded messages for a according to @param amounts
-     * @param amount array of amounts to create blinded messages for
-     * @param counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @param keyksetId? override the keysetId derived from the current mintKeys with a custom one. This should be a keyset that was fetched from the `/keysets` endpoint
-     * @param pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
-     * @returns blinded messages, secrets, rs, and amounts
-     */
-    CashuWallet.prototype.createBlindedMessages = function (amounts, keysetId, counter, pubkey) {
-        // if we atempt to create deterministic messages without a _seed, abort.
-        if (counter != undefined && !this._seed) {
-            throw new Error('Cannot create deterministic messages without seed. Instantiate CashuWallet with a bip39seed, or omit counter param.');
-        }
-        var blindedMessages = [];
-        var secrets = [];
-        var blindingFactors = [];
-        for (var i = 0; i < amounts.length; i++) {
-            var deterministicR = undefined;
-            var secretBytes = undefined;
-            if (pubkey) {
-                secretBytes = (0, NUT11_1.createP2PKsecret)(pubkey);
-            }
-            else if (this._seed && counter != undefined) {
-                secretBytes = (0, NUT09_1.deriveSecret)(this._seed, keysetId, counter + i);
-                deterministicR = (0, utils_js_1.bytesToNumber)((0, NUT09_1.deriveBlindingFactor)(this._seed, keysetId, counter + i));
-            }
-            else {
-                secretBytes = (0, utils_1.randomBytes)(32);
-            }
-            if (!pubkey) {
-                var secretHex = (0, utils_1.bytesToHex)(secretBytes);
-                secretBytes = new TextEncoder().encode(secretHex);
-            }
-            secrets.push(secretBytes);
-            var _a = (0, client_1.blindMessage)(secretBytes, deterministicR), B_ = _a.B_, r = _a.r;
-            blindingFactors.push(r);
-            var blindedMessage = new BlindedMessage_js_1.BlindedMessage(amounts[i], B_, keysetId);
-            blindedMessages.push(blindedMessage.getSerializedBlindedMessage());
-        }
-        return { blindedMessages: blindedMessages, secrets: secrets, blindingFactors: blindingFactors, amounts: amounts };
-    };
-    /**
-     * Creates NUT-08 blank outputs (fee returns) for a given fee reserve
-     * See: https://github.com/cashubtc/nuts/blob/main/08.md
-     * @param amount amount to cover with blank outputs
-     * @param keysetId mint keysetId
-     * @param counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
-     * @returns blinded messages, secrets, and rs
-     */
-    CashuWallet.prototype.createBlankOutputs = function (amount, keysetId, counter) {
-        var count = Math.ceil(Math.log2(amount)) || 1;
-        //Prevent count from being -Infinity
-        if (count < 0) {
-            count = 0;
-        }
-        var amounts = count ? Array(count).fill(1) : [];
-        var _a = this.createBlindedMessages(amounts, keysetId, counter), blindedMessages = _a.blindedMessages, blindingFactors = _a.blindingFactors, secrets = _a.secrets;
-        return { blindedMessages: blindedMessages, secrets: secrets, blindingFactors: blindingFactors };
-    };
-    /**
-     * construct proofs from @params promises, @params rs, @params secrets, and @params keyset
-     * @param promises array of serialized blinded signatures
-     * @param rs arrays of binding factors
-     * @param secrets array of secrets
-     * @param keyset mint keyset
-     * @returns array of serialized proofs
-     */
-    CashuWallet.prototype.constructProofs = function (promises, rs, secrets, keyset) {
-        return promises.map(function (p, i) {
-            var _a;
-            var dleq = p.dleq == undefined
-                ? undefined
-                : {
-                    s: (0, utils_1.hexToBytes)(p.dleq.s),
-                    e: (0, utils_1.hexToBytes)(p.dleq.e),
-                    r: rs[i]
-                };
-            var blindSignature = {
-                id: p.id,
-                amount: p.amount,
-                C_: (0, common_1.pointFromHex)(p.C_),
-                dleq: dleq
-            };
-            var r = rs[i];
-            var secret = secrets[i];
-            var A = (0, common_1.pointFromHex)(keyset.keys[p.amount]);
-            var proof = (0, client_1.constructProofFromPromise)(blindSignature, r, secret, A);
-            var serializedProof = __assign(__assign(__assign({}, (0, client_1.serializeProof)(proof)), (dleq && {
-                dleqValid: (0, NUT12_1.verifyDLEQProof_reblind)(secret, dleq, proof.C, A)
-            })), (dleq && {
-                dleq: {
-                    s: (0, utils_1.bytesToHex)(dleq.s),
-                    e: (0, utils_1.bytesToHex)(dleq.e),
-                    r: (0, utils_js_1.numberToHexPadded64)((_a = dleq.r) !== null && _a !== void 0 ? _a : BigInt(0))
-                }
-            }));
-            return serializedProof;
-        });
-    };
-    return CashuWallet;
-}());
-exports.CashuWallet = CashuWallet;
-
-
-/***/ }),
-
-/***/ 2364:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WSConnection = exports.ConnectionManager = void 0;
-var utils_1 = __webpack_require__(4561);
-var ws_1 = __webpack_require__(9932);
-var ConnectionManager = /** @class */ (function () {
-    function ConnectionManager() {
-        this.connectionMap = new Map();
-    }
-    ConnectionManager.getInstance = function () {
-        if (!ConnectionManager.instace) {
-            ConnectionManager.instace = new ConnectionManager();
-        }
-        return ConnectionManager.instace;
-    };
-    ConnectionManager.prototype.getConnection = function (url) {
-        if (this.connectionMap.has(url)) {
-            return this.connectionMap.get(url);
-        }
-        var newConn = new WSConnection(url);
-        this.connectionMap.set(url, newConn);
-        return newConn;
-    };
-    return ConnectionManager;
-}());
-exports.ConnectionManager = ConnectionManager;
-var WSConnection = /** @class */ (function () {
-    function WSConnection(url) {
-        this.subListeners = {};
-        this.rpcListeners = {};
-        this.rpcId = 0;
-        this._WS = (0, ws_1.getWebSocketImpl)();
-        this.url = new URL(url);
-        this.messageQueue = new utils_1.MessageQueue();
-    }
-    WSConnection.prototype.connect = function () {
-        var _this = this;
-        if (!this.connectionPromise) {
-            this.connectionPromise = new Promise(function (res, rej) {
-                try {
-                    _this.ws = new _this._WS(_this.url);
-                }
-                catch (err) {
-                    rej(err);
-                    return;
-                }
-                _this.ws.onopen = function () {
-                    res();
-                };
-                _this.ws.onerror = function () {
-                    rej(new Error('Failed to open WebSocket'));
-                };
-                _this.ws.onmessage = function (e) {
-                    _this.messageQueue.enqueue(e.data);
-                    if (!_this.handlingInterval) {
-                        _this.handlingInterval = setInterval(_this.handleNextMesage.bind(_this), 0);
-                    }
-                };
-                _this.ws.onclose = function () {
-                    _this.connectionPromise = undefined;
-                };
-            });
-        }
-        return this.connectionPromise;
-    };
-    WSConnection.prototype.sendRequest = function (method, params) {
-        var _a, _b;
-        if (((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) !== 1) {
-            throw new Error('Socket not open...');
-        }
-        var id = this.rpcId;
-        this.rpcId++;
-        var message = JSON.stringify({ jsonrpc: '2.0', method: method, params: params, id: id });
-        (_b = this.ws) === null || _b === void 0 ? void 0 : _b.send(message);
-    };
-    WSConnection.prototype.closeSubscription = function (subId) {
-        var _a;
-        (_a = this.ws) === null || _a === void 0 ? void 0 : _a.send(JSON.stringify(['CLOSE', subId]));
-    };
-    WSConnection.prototype.addSubListener = function (subId, callback) {
-        (this.subListeners[subId] = this.subListeners[subId] || []).push(callback);
-    };
-    //TODO: Move to RPCManagerClass
-    WSConnection.prototype.addRpcListener = function (callback, errorCallback, id) {
-        this.rpcListeners[id] = { callback: callback, errorCallback: errorCallback };
-    };
-    //TODO: Move to RPCManagerClass
-    WSConnection.prototype.removeRpcListener = function (id) {
-        delete this.rpcListeners[id];
-    };
-    WSConnection.prototype.removeListener = function (subId, callback) {
-        if (this.subListeners[subId].length === 1) {
-            delete this.subListeners[subId];
-            return;
-        }
-        this.subListeners[subId] = this.subListeners[subId].filter(function (fn) { return fn !== callback; });
-    };
-    WSConnection.prototype.ensureConnection = function () {
-        var _a;
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        if (!(((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) !== 1)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.connect()];
-                    case 1:
-                        _b.sent();
-                        _b.label = 2;
-                    case 2: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    WSConnection.prototype.handleNextMesage = function () {
-        var _a;
-        if (this.messageQueue.size === 0) {
-            clearInterval(this.handlingInterval);
-            this.handlingInterval = undefined;
-            return;
-        }
-        var message = this.messageQueue.dequeue();
-        var parsed;
-        try {
-            parsed = JSON.parse(message);
-            if ('result' in parsed && parsed.id != undefined) {
-                if (this.rpcListeners[parsed.id]) {
-                    this.rpcListeners[parsed.id].callback();
-                    this.removeRpcListener(parsed.id);
-                }
-            }
-            else if ('error' in parsed && parsed.id != undefined) {
-                if (this.rpcListeners[parsed.id]) {
-                    this.rpcListeners[parsed.id].errorCallback(parsed.error);
-                    this.removeRpcListener(parsed.id);
-                }
-            }
-            else if ('method' in parsed) {
-                if ('id' in parsed) {
-                    // Do nothing as mints should not send requests
-                }
-                else {
-                    var subId = parsed.params.subId;
-                    if (!subId) {
-                        return;
-                    }
-                    if (((_a = this.subListeners[subId]) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-                        var notification_1 = parsed;
-                        this.subListeners[subId].forEach(function (cb) { return cb(notification_1.params.payload); });
-                    }
-                }
-            }
-        }
-        catch (e) {
-            console.error(e);
-            return;
-        }
-    };
-    WSConnection.prototype.createSubscription = function (params, callback, errorCallback) {
-        var _this = this;
-        var _a;
-        if (((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) !== 1) {
-            return errorCallback(new Error('Socket is not open'));
-        }
-        var subId = (Math.random() + 1).toString(36).substring(7);
-        this.addRpcListener(function () {
-            _this.addSubListener(subId, callback);
-        }, function (e) {
-            errorCallback(new Error(e.message));
-        }, this.rpcId);
-        this.sendRequest('subscribe', __assign(__assign({}, params), { subId: subId }));
-        this.rpcId++;
-        return subId;
-    };
-    WSConnection.prototype.cancelSubscription = function (subId, callback) {
-        this.removeListener(subId, callback);
-        this.rpcId++;
-        this.sendRequest('unsubscribe', { subId: subId });
-    };
-    Object.defineProperty(WSConnection.prototype, "activeSubscriptions", {
-        get: function () {
-            return Object.keys(this.subListeners);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    WSConnection.prototype.close = function () {
-        var _a;
-        if (this.ws) {
-            (_a = this.ws) === null || _a === void 0 ? void 0 : _a.close();
-        }
-    };
-    return WSConnection;
-}());
-exports.WSConnection = WSConnection;
-
-
-/***/ }),
-
-/***/ 1101:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.encodeBase64ToJson = exports.encodeJsonToBase64 = exports.encodeBase64toUint8 = exports.encodeUint8toBase64Url = exports.encodeUint8toBase64 = void 0;
-var buffer_1 = __webpack_require__(181);
-function encodeUint8toBase64(uint8array) {
-    return buffer_1.Buffer.from(uint8array).toString('base64');
-}
-exports.encodeUint8toBase64 = encodeUint8toBase64;
-function encodeUint8toBase64Url(bytes) {
-    return buffer_1.Buffer.from(bytes)
-        .toString('base64')
-        .replace(/\+/g, '-') // Replace + with -
-        .replace(/\//g, '_') // Replace / with _
-        .replace(/=+$/, ''); // Remove padding characters
-}
-exports.encodeUint8toBase64Url = encodeUint8toBase64Url;
-function encodeBase64toUint8(base64String) {
-    return buffer_1.Buffer.from(base64String, 'base64');
-}
-exports.encodeBase64toUint8 = encodeBase64toUint8;
-function encodeJsonToBase64(jsonObj) {
-    var jsonString = JSON.stringify(jsonObj);
-    return base64urlFromBase64(buffer_1.Buffer.from(jsonString).toString('base64'));
-}
-exports.encodeJsonToBase64 = encodeJsonToBase64;
-function encodeBase64ToJson(base64String) {
-    var jsonString = buffer_1.Buffer.from(base64urlToBase64(base64String), 'base64').toString();
-    var jsonObj = JSON.parse(jsonString);
-    return jsonObj;
-}
-exports.encodeBase64ToJson = encodeBase64ToJson;
-function base64urlToBase64(str) {
-    return str.replace(/-/g, '+').replace(/_/g, '/').split('=')[0];
-    // .replace(/./g, '=');
-}
-function base64urlFromBase64(str) {
-    return str.replace(/\+/g, '-').replace(/\//g, '_').split('=')[0];
-    // .replace(/=/g, '.');
-}
-
-
-/***/ }),
-
-/***/ 9022:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.decodeCBOR = exports.encodeCBOR = void 0;
-function isResultKeyType(value) {
-    return typeof value === 'number' || typeof value === 'string';
-}
-function encodeCBOR(value) {
-    var buffer = [];
-    encodeItem(value, buffer);
-    return new Uint8Array(buffer);
-}
-exports.encodeCBOR = encodeCBOR;
-function encodeItem(value, buffer) {
-    if (value === null) {
-        buffer.push(0xf6);
-    }
-    else if (value === undefined) {
-        buffer.push(0xf7);
-    }
-    else if (typeof value === 'boolean') {
-        buffer.push(value ? 0xf5 : 0xf4);
-    }
-    else if (typeof value === 'number') {
-        encodeUnsigned(value, buffer);
-    }
-    else if (typeof value === 'string') {
-        encodeString(value, buffer);
-    }
-    else if (Array.isArray(value)) {
-        encodeArray(value, buffer);
-    }
-    else if (value instanceof Uint8Array) {
-        encodeByteString(value, buffer);
-    }
-    else if (typeof value === 'object') {
-        encodeObject(value, buffer);
-    }
-    else {
-        throw new Error('Unsupported type');
-    }
-}
-function encodeUnsigned(value, buffer) {
-    if (value < 24) {
-        buffer.push(value);
-    }
-    else if (value < 256) {
-        buffer.push(0x18, value);
-    }
-    else if (value < 65536) {
-        buffer.push(0x19, value >> 8, value & 0xff);
-    }
-    else if (value < 4294967296) {
-        buffer.push(0x1a, value >> 24, (value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff);
-    }
-    else {
-        throw new Error('Unsupported integer size');
-    }
-}
-function encodeByteString(value, buffer) {
-    var length = value.length;
-    if (length < 24) {
-        buffer.push(0x40 + length);
-    }
-    else if (length < 256) {
-        buffer.push(0x58, length);
-    }
-    else if (length < 65536) {
-        buffer.push(0x59, (length >> 8) & 0xff, length & 0xff);
-    }
-    else if (length < 4294967296) {
-        buffer.push(0x5a, (length >> 24) & 0xff, (length >> 16) & 0xff, (length >> 8) & 0xff, length & 0xff);
-    }
-    else {
-        throw new Error('Byte string too long to encode');
-    }
-    for (var i = 0; i < value.length; i++) {
-        buffer.push(value[i]);
-    }
-}
-function encodeString(value, buffer) {
-    var utf8 = new TextEncoder().encode(value);
-    var length = utf8.length;
-    if (length < 24) {
-        buffer.push(0x60 + length);
-    }
-    else if (length < 256) {
-        buffer.push(0x78, length);
-    }
-    else if (length < 65536) {
-        buffer.push(0x79, (length >> 8) & 0xff, length & 0xff);
-    }
-    else if (length < 4294967296) {
-        buffer.push(0x7a, (length >> 24) & 0xff, (length >> 16) & 0xff, (length >> 8) & 0xff, length & 0xff);
-    }
-    else {
-        throw new Error('String too long to encode');
-    }
-    for (var i = 0; i < utf8.length; i++) {
-        buffer.push(utf8[i]);
-    }
-}
-function encodeArray(value, buffer) {
-    var length = value.length;
-    if (length < 24) {
-        buffer.push(0x80 | length);
-    }
-    else if (length < 256) {
-        buffer.push(0x98, length);
-    }
-    else if (length < 65536) {
-        buffer.push(0x99, length >> 8, length & 0xff);
-    }
-    else {
-        throw new Error('Unsupported array length');
-    }
-    for (var _i = 0, value_1 = value; _i < value_1.length; _i++) {
-        var item = value_1[_i];
-        encodeItem(item, buffer);
-    }
-}
-function encodeObject(value, buffer) {
-    var keys = Object.keys(value);
-    encodeUnsigned(keys.length, buffer);
-    buffer[buffer.length - 1] |= 0xa0;
-    for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
-        var key = keys_1[_i];
-        encodeString(key, buffer);
-        encodeItem(value[key], buffer);
-    }
-}
-function decodeCBOR(data) {
-    var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    var result = decodeItem(view, 0);
-    return result.value;
-}
-exports.decodeCBOR = decodeCBOR;
-function decodeItem(view, offset) {
-    if (offset >= view.byteLength) {
-        throw new Error('Unexpected end of data');
-    }
-    var initialByte = view.getUint8(offset++);
-    var majorType = initialByte >> 5;
-    var additionalInfo = initialByte & 0x1f;
-    switch (majorType) {
-        case 0:
-            return decodeUnsigned(view, offset, additionalInfo);
-        case 1:
-            return decodeSigned(view, offset, additionalInfo);
-        case 2:
-            return decodeByteString(view, offset, additionalInfo);
-        case 3:
-            return decodeString(view, offset, additionalInfo);
-        case 4:
-            return decodeArray(view, offset, additionalInfo);
-        case 5:
-            return decodeMap(view, offset, additionalInfo);
-        case 7:
-            return decodeSimpleAndFloat(view, offset, additionalInfo);
-        default:
-            throw new Error("Unsupported major type: ".concat(majorType));
-    }
-}
-function decodeLength(view, offset, additionalInfo) {
-    if (additionalInfo < 24)
-        return { value: additionalInfo, offset: offset };
-    if (additionalInfo === 24)
-        return { value: view.getUint8(offset++), offset: offset };
-    if (additionalInfo === 25) {
-        var value = view.getUint16(offset, false);
-        offset += 2;
-        return { value: value, offset: offset };
-    }
-    if (additionalInfo === 26) {
-        var value = view.getUint32(offset, false);
-        offset += 4;
-        return { value: value, offset: offset };
-    }
-    if (additionalInfo === 27) {
-        var hi = view.getUint32(offset, false);
-        var lo = view.getUint32(offset + 4, false);
-        offset += 8;
-        return { value: hi * Math.pow(2, 32) + lo, offset: offset };
-    }
-    throw new Error("Unsupported length: ".concat(additionalInfo));
-}
-function decodeUnsigned(view, offset, additionalInfo) {
-    var _a = decodeLength(view, offset, additionalInfo), value = _a.value, newOffset = _a.offset;
-    return { value: value, offset: newOffset };
-}
-function decodeSigned(view, offset, additionalInfo) {
-    var _a = decodeLength(view, offset, additionalInfo), value = _a.value, newOffset = _a.offset;
-    return { value: -1 - value, offset: newOffset };
-}
-function decodeByteString(view, offset, additionalInfo) {
-    var _a = decodeLength(view, offset, additionalInfo), length = _a.value, newOffset = _a.offset;
-    if (newOffset + length > view.byteLength) {
-        throw new Error('Byte string length exceeds data length');
-    }
-    var value = new Uint8Array(view.buffer, view.byteOffset + newOffset, length);
-    return { value: value, offset: newOffset + length };
-}
-function decodeString(view, offset, additionalInfo) {
-    var _a = decodeLength(view, offset, additionalInfo), length = _a.value, newOffset = _a.offset;
-    if (newOffset + length > view.byteLength) {
-        throw new Error('String length exceeds data length');
-    }
-    var bytes = new Uint8Array(view.buffer, view.byteOffset + newOffset, length);
-    var value = new TextDecoder().decode(bytes);
-    return { value: value, offset: newOffset + length };
-}
-function decodeArray(view, offset, additionalInfo) {
-    var _a = decodeLength(view, offset, additionalInfo), length = _a.value, newOffset = _a.offset;
-    var array = [];
-    var currentOffset = newOffset;
-    for (var i = 0; i < length; i++) {
-        var result = decodeItem(view, currentOffset);
-        array.push(result.value);
-        currentOffset = result.offset;
-    }
-    return { value: array, offset: currentOffset };
-}
-function decodeMap(view, offset, additionalInfo) {
-    var _a = decodeLength(view, offset, additionalInfo), length = _a.value, newOffset = _a.offset;
-    var map = {};
-    var currentOffset = newOffset;
-    for (var i = 0; i < length; i++) {
-        var keyResult = decodeItem(view, currentOffset);
-        if (!isResultKeyType(keyResult.value)) {
-            throw new Error('Invalid key type');
-        }
-        var valueResult = decodeItem(view, keyResult.offset);
-        map[keyResult.value] = valueResult.value;
-        currentOffset = valueResult.offset;
-    }
-    return { value: map, offset: currentOffset };
-}
-function decodeFloat16(uint16) {
-    var exponent = (uint16 & 0x7c00) >> 10;
-    var fraction = uint16 & 0x03ff;
-    var sign = uint16 & 0x8000 ? -1 : 1;
-    if (exponent === 0) {
-        return sign * Math.pow(2, -14) * (fraction / 1024);
-    }
-    else if (exponent === 0x1f) {
-        return fraction ? NaN : sign * Infinity;
-    }
-    return sign * Math.pow(2, (exponent - 15)) * (1 + fraction / 1024);
-}
-function decodeSimpleAndFloat(view, offset, additionalInfo) {
-    if (additionalInfo < 24) {
-        switch (additionalInfo) {
-            case 20:
-                return { value: false, offset: offset };
-            case 21:
-                return { value: true, offset: offset };
-            case 22:
-                return { value: null, offset: offset };
-            case 23:
-                return { value: undefined, offset: offset };
-            default:
-                throw new Error("Unknown simple value: ".concat(additionalInfo));
-        }
-    }
-    if (additionalInfo === 24)
-        return { value: view.getUint8(offset++), offset: offset };
-    if (additionalInfo === 25) {
-        var value = decodeFloat16(view.getUint16(offset, false));
-        offset += 2;
-        return { value: value, offset: offset };
-    }
-    if (additionalInfo === 26) {
-        var value = view.getFloat32(offset, false);
-        offset += 4;
-        return { value: value, offset: offset };
-    }
-    if (additionalInfo === 27) {
-        var value = view.getFloat64(offset, false);
-        offset += 8;
-        return { value: value, offset: offset };
-    }
-    throw new Error("Unknown simple or float value: ".concat(additionalInfo));
-}
-
-
-/***/ }),
-
-/***/ 4344:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.injectWebSocketImpl = exports.setGlobalRequestOptions = exports.deriveKeysetId = exports.decodePaymentRequest = exports.getEncodedTokenV4 = exports.getEncodedToken = exports.getDecodedToken = exports.PaymentRequest = exports.CashuWallet = exports.CashuMint = void 0;
-var CashuMint_js_1 = __webpack_require__(3314);
-Object.defineProperty(exports, "CashuMint", ({ enumerable: true, get: function () { return CashuMint_js_1.CashuMint; } }));
-var CashuWallet_js_1 = __webpack_require__(9811);
-Object.defineProperty(exports, "CashuWallet", ({ enumerable: true, get: function () { return CashuWallet_js_1.CashuWallet; } }));
-var PaymentRequest_js_1 = __webpack_require__(6115);
-Object.defineProperty(exports, "PaymentRequest", ({ enumerable: true, get: function () { return PaymentRequest_js_1.PaymentRequest; } }));
-var request_js_1 = __webpack_require__(2453);
-Object.defineProperty(exports, "setGlobalRequestOptions", ({ enumerable: true, get: function () { return request_js_1.setGlobalRequestOptions; } }));
-var utils_js_1 = __webpack_require__(4561);
-Object.defineProperty(exports, "getEncodedToken", ({ enumerable: true, get: function () { return utils_js_1.getEncodedToken; } }));
-Object.defineProperty(exports, "getEncodedTokenV4", ({ enumerable: true, get: function () { return utils_js_1.getEncodedTokenV4; } }));
-Object.defineProperty(exports, "getDecodedToken", ({ enumerable: true, get: function () { return utils_js_1.getDecodedToken; } }));
-Object.defineProperty(exports, "deriveKeysetId", ({ enumerable: true, get: function () { return utils_js_1.deriveKeysetId; } }));
-Object.defineProperty(exports, "decodePaymentRequest", ({ enumerable: true, get: function () { return utils_js_1.decodePaymentRequest; } }));
-__exportStar(__webpack_require__(4748), exports);
-var ws_js_1 = __webpack_require__(9932);
-Object.defineProperty(exports, "injectWebSocketImpl", ({ enumerable: true, get: function () { return ws_js_1.injectWebSocketImpl; } }));
-
-
-/***/ }),
 
 /***/ 3358:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
+var __webpack_unused_export__;
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.handleMintQuoteResponseDeprecated = void 0;
-var index_js_1 = __webpack_require__(4748);
-function handleMintQuoteResponseDeprecated(response) {
-    // if the response MeltQuoteResponse has a "paid" flag, we monkey patch it to the state enum
-    if (!response.state) {
-        console.warn("Field 'state' not found in MintQuoteResponse. Update NUT-04 of mint: https://github.com/cashubtc/nuts/pull/141)");
-        if (typeof response.paid === 'boolean') {
-            response.state = response.paid ? index_js_1.MintQuoteState.PAID : index_js_1.MintQuoteState.UNPAID;
-        }
-    }
-    return response;
-}
-exports.handleMintQuoteResponseDeprecated = handleMintQuoteResponseDeprecated;
-
-
-/***/ }),
-
-/***/ 6573:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.handleMeltQuoteResponseDeprecated = void 0;
-var index_js_1 = __webpack_require__(4748);
-function handleMeltQuoteResponseDeprecated(response) {
-    // if the response MeltQuoteResponse has a "paid" flag, we monkey patch it to the state enum
-    if (!response.state) {
-        console.warn("Field 'state' not found in MeltQuoteResponse. Update NUT-05 of mint: https://github.com/cashubtc/nuts/pull/136)");
-        if (typeof response.paid === 'boolean') {
-            response.state = response.paid ? index_js_1.MeltQuoteState.PAID : index_js_1.MeltQuoteState.UNPAID;
-        }
-    }
-    return response;
-}
-exports.handleMeltQuoteResponseDeprecated = handleMeltQuoteResponseDeprecated;
-
-
-/***/ }),
-
-/***/ 5156:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.handleMintInfoContactFieldDeprecated = void 0;
-function handleMintInfoContactFieldDeprecated(data) {
-    // Monkey patch old contact field ["email", "me@mail.com"] Array<[string, string]>; to new contact field [{method: "email", info: "me@mail.com"}] Array<MintContactInfo>
-    // This is to maintain backwards compatibility with older versions of the mint
-    if (Array.isArray(data === null || data === void 0 ? void 0 : data.contact) && (data === null || data === void 0 ? void 0 : data.contact.length) > 0) {
-        data.contact = data.contact.map(function (contact) {
-            if (Array.isArray(contact) &&
-                contact.length === 2 &&
-                typeof contact[0] === 'string' &&
-                typeof contact[1] === 'string') {
-                console.warn("Mint returned deprecated 'contact' field: Update NUT-06: https://github.com/cashubtc/nuts/pull/117");
-                return { method: contact[0], info: contact[1] };
-            }
-            return contact;
-        });
-    }
-    return data;
-}
-exports.handleMintInfoContactFieldDeprecated = handleMintInfoContactFieldDeprecated;
-
-
-/***/ }),
-
-/***/ 8189:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BlindedMessage = void 0;
-var BlindedMessage = /** @class */ (function () {
-    function BlindedMessage(amount, B_, id) {
-        this.amount = amount;
-        this.B_ = B_;
-        this.id = id;
-    }
-    BlindedMessage.prototype.getSerializedBlindedMessage = function () {
-        return { amount: this.amount, B_: this.B_.toHex(true), id: this.id };
-    };
-    return BlindedMessage;
-}());
-exports.BlindedMessage = BlindedMessage;
-
-
-/***/ }),
-
-/***/ 1651:
-/***/ (function(__unused_webpack_module, exports) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.HttpResponseError = void 0;
-var HttpResponseError = /** @class */ (function (_super) {
-    __extends(HttpResponseError, _super);
-    function HttpResponseError(message, status) {
-        var _this = _super.call(this, message) || this;
-        _this.status = status;
-        return _this;
-    }
-    return HttpResponseError;
-}(Error));
-exports.HttpResponseError = HttpResponseError;
-
-
-/***/ }),
-
-/***/ 2000:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MintInfo = void 0;
-var MintInfo = /** @class */ (function () {
-    function MintInfo(info) {
-        this._mintInfo = info;
-    }
-    MintInfo.prototype.isSupported = function (num) {
-        switch (num) {
-            case 4:
-            case 5: {
-                return this.checkMintMelt(num);
-            }
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 14: {
-                return this.checkGenericNut(num);
-            }
-            case 17: {
-                return this.checkNut17();
-            }
-            case 15: {
-                return this.checkNut15();
-            }
-            default: {
-                throw new Error('nut is not supported by cashu-ts');
-            }
-        }
-    };
-    MintInfo.prototype.checkGenericNut = function (num) {
-        var _a;
-        if ((_a = this._mintInfo.nuts[num]) === null || _a === void 0 ? void 0 : _a.supported) {
-            return { supported: true };
-        }
-        return { supported: false };
-    };
-    MintInfo.prototype.checkMintMelt = function (num) {
-        var mintMeltInfo = this._mintInfo.nuts[num];
-        if (mintMeltInfo && mintMeltInfo.methods.length > 0 && !mintMeltInfo.disabled) {
-            return { disabled: false, params: mintMeltInfo.methods };
-        }
-        return { disabled: true, params: mintMeltInfo.methods };
-    };
-    MintInfo.prototype.checkNut17 = function () {
-        if (this._mintInfo.nuts[17] && this._mintInfo.nuts[17].supported.length > 0) {
-            return { supported: true, params: this._mintInfo.nuts[17].supported };
-        }
-        return { supported: false };
-    };
-    MintInfo.prototype.checkNut15 = function () {
-        if (this._mintInfo.nuts[15] && this._mintInfo.nuts[15].methods.length > 0) {
-            return { supported: true, params: this._mintInfo.nuts[15].methods };
-        }
-        return { supported: false };
-    };
-    Object.defineProperty(MintInfo.prototype, "contact", {
-        get: function () {
-            return this._mintInfo.contact;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MintInfo.prototype, "description", {
-        get: function () {
-            return this._mintInfo.description;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MintInfo.prototype, "description_long", {
-        get: function () {
-            return this._mintInfo.description_long;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MintInfo.prototype, "name", {
-        get: function () {
-            return this._mintInfo.name;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MintInfo.prototype, "pubkey", {
-        get: function () {
-            return this._mintInfo.pubkey;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MintInfo.prototype, "nuts", {
-        get: function () {
-            return this._mintInfo.nuts;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MintInfo.prototype, "version", {
-        get: function () {
-            return this._mintInfo.version;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MintInfo.prototype, "motd", {
-        get: function () {
-            return this._mintInfo.motd;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return MintInfo;
-}());
-exports.MintInfo = MintInfo;
-
-
-/***/ }),
-
-/***/ 6115:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaymentRequest = void 0;
-var base64_1 = __webpack_require__(1101);
-var cbor_1 = __webpack_require__(9022);
-var buffer_1 = __webpack_require__(181);
-var PaymentRequest = /** @class */ (function () {
-    function PaymentRequest(transport, id, amount, unit, mints, description, singleUse) {
-        if (singleUse === void 0) { singleUse = false; }
-        this.transport = transport;
-        this.id = id;
-        this.amount = amount;
-        this.unit = unit;
-        this.mints = mints;
-        this.description = description;
-        this.singleUse = singleUse;
-    }
-    PaymentRequest.prototype.toEncodedRequest = function () {
-        var rawRequest = {
-            t: this.transport.map(function (t) { return ({ t: t.type, a: t.target, g: t.tags }); })
-        };
-        if (this.id) {
-            rawRequest.i = this.id;
-        }
-        if (this.amount) {
-            rawRequest.a = this.amount;
-        }
-        if (this.unit) {
-            rawRequest.u = this.unit;
-        }
-        if (this.mints) {
-            rawRequest.m = this.mints;
-        }
-        if (this.description) {
-            rawRequest.d = this.description;
-        }
-        if (this.singleUse) {
-            rawRequest.s = this.singleUse;
-        }
-        var data = (0, cbor_1.encodeCBOR)(rawRequest);
-        var encodedData = buffer_1.Buffer.from(data).toString('base64');
-        return 'creq' + 'A' + encodedData;
-    };
-    PaymentRequest.prototype.getTransport = function (type) {
-        return this.transport.find(function (t) { return t.type === type; });
-    };
-    PaymentRequest.fromEncodedRequest = function (encodedRequest) {
-        if (!encodedRequest.startsWith('creq')) {
-            throw new Error('unsupported pr: invalid prefix');
-        }
-        var version = encodedRequest[4];
-        if (version !== 'A') {
-            throw new Error('unsupported pr version');
-        }
-        var encodedData = encodedRequest.slice(5);
-        var data = (0, base64_1.encodeBase64toUint8)(encodedData);
-        var decoded = (0, cbor_1.decodeCBOR)(data);
-        var transports = decoded.t.map(function (t) { return ({ type: t.t, target: t.a, tags: t.g }); });
-        return new PaymentRequest(transports, decoded.i, decoded.a, decoded.u, decoded.m, decoded.d, decoded.s);
-    };
-    return PaymentRequest;
-}());
-exports.PaymentRequest = PaymentRequest;
-
-
-/***/ }),
-
-/***/ 4748:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(3373), exports);
-__exportStar(__webpack_require__(8568), exports);
-
-
-/***/ }),
-
-/***/ 3373:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(6081), exports);
-__exportStar(__webpack_require__(9925), exports);
-
-
-/***/ }),
-
-/***/ 9925:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-
-/***/ 6081:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MintQuoteState = exports.MeltQuoteState = exports.CheckStateEnum = void 0;
-/**
- * Enum for the state of a proof
- */
-var CheckStateEnum;
-(function (CheckStateEnum) {
-    CheckStateEnum["UNSPENT"] = "UNSPENT";
-    CheckStateEnum["PENDING"] = "PENDING";
-    CheckStateEnum["SPENT"] = "SPENT";
-})(CheckStateEnum = exports.CheckStateEnum || (exports.CheckStateEnum = {}));
-var MeltQuoteState;
-(function (MeltQuoteState) {
-    MeltQuoteState["UNPAID"] = "UNPAID";
-    MeltQuoteState["PENDING"] = "PENDING";
-    MeltQuoteState["PAID"] = "PAID";
-})(MeltQuoteState = exports.MeltQuoteState || (exports.MeltQuoteState = {}));
-var MintQuoteState;
-(function (MintQuoteState) {
-    MintQuoteState["UNPAID"] = "UNPAID";
-    MintQuoteState["PAID"] = "PAID";
-    MintQuoteState["ISSUED"] = "ISSUED";
-})(MintQuoteState = exports.MintQuoteState || (exports.MintQuoteState = {}));
-
-
-/***/ }),
-
-/***/ 8568:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(2069), exports);
-__exportStar(__webpack_require__(1284), exports);
-__exportStar(__webpack_require__(6736), exports);
-__exportStar(__webpack_require__(3964), exports);
-
-
-/***/ }),
-
-/***/ 2069:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-
-/***/ 3964:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaymentRequestTransportType = void 0;
-var PaymentRequestTransportType;
-(function (PaymentRequestTransportType) {
-    PaymentRequestTransportType["POST"] = "post";
-    PaymentRequestTransportType["NOSTR"] = "nostr";
-})(PaymentRequestTransportType = exports.PaymentRequestTransportType || (exports.PaymentRequestTransportType = {}));
-
-
-/***/ }),
-
-/***/ 1284:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-
-/***/ 6736:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-
-/***/ 2453:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setGlobalRequestOptions = void 0;
-var Errors_1 = __webpack_require__(1651);
-var globalRequestOptions = {};
-/**
- * An object containing any custom settings that you want to apply to the global fetch method.
- * @param options See possible options here: https://developer.mozilla.org/en-US/docs/Web/API/fetch#options
- */
-function setGlobalRequestOptions(options) {
-    globalRequestOptions = options;
-}
-exports.setGlobalRequestOptions = setGlobalRequestOptions;
-function _request(_a) {
-    var endpoint = _a.endpoint, requestBody = _a.requestBody, requestHeaders = _a.headers, options = __rest(_a, ["endpoint", "requestBody", "headers"]);
-    return __awaiter(this, void 0, void 0, function () {
-        var body, headers, response, _b, error, detail, err_1;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    body = requestBody ? JSON.stringify(requestBody) : undefined;
-                    headers = __assign(__assign({ Accept: 'application/json, text/plain, */*' }, (body ? { 'Content-Type': 'application/json' } : undefined)), requestHeaders);
-                    return [4 /*yield*/, fetch(endpoint, __assign({ body: body, headers: headers }, options))];
-                case 1:
-                    response = _c.sent();
-                    if (!!response.ok) return [3 /*break*/, 3];
-                    return [4 /*yield*/, response.json().catch(function () { return ({ error: 'bad response' }); })];
-                case 2:
-                    _b = _c.sent(), error = _b.error, detail = _b.detail;
-                    throw new Errors_1.HttpResponseError(error || detail || 'bad response', response.status);
-                case 3:
-                    _c.trys.push([3, 5, , 6]);
-                    return [4 /*yield*/, response.json()];
-                case 4: return [2 /*return*/, _c.sent()];
-                case 5:
-                    err_1 = _c.sent();
-                    console.error('Failed to parse HTTP response', err_1);
-                    throw new Errors_1.HttpResponseError('bad response', response.status);
-                case 6: return [2 /*return*/];
-            }
-        });
-    });
-}
-function request(options) {
-    return __awaiter(this, void 0, void 0, function () {
-        var data;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, _request(__assign(__assign({}, options), globalRequestOptions))];
-                case 1:
-                    data = _a.sent();
-                    return [2 /*return*/, data];
-            }
-        });
-    });
-}
-exports["default"] = request;
-
-
-/***/ }),
-
-/***/ 4561:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.hasValidDleq = exports.stripDleq = exports.MessageQueue = exports.MessageNode = exports.decodePaymentRequest = exports.sumProofs = exports.sanitizeUrl = exports.joinUrls = exports.checkResponse = exports.isObj = exports.sortProofsById = exports.mergeUInt8Arrays = exports.deriveKeysetId = exports.handleTokens = exports.getDecodedToken = exports.getEncodedTokenV4 = exports.getEncodedToken = exports.getEncodedTokenV3 = exports.bigIntStringify = exports.hasNonHexId = exports.numberToHexPadded64 = exports.hexToNumber = exports.bytesToNumber = exports.hasCorrespondingKey = exports.getKeysetAmounts = exports.getKeepAmounts = exports.splitAmount = void 0;
-var base64_js_1 = __webpack_require__(1101);
-var Constants_js_1 = __webpack_require__(4395);
-var utils_1 = __webpack_require__(3901);
-var sha256_1 = __webpack_require__(7178);
-var cbor_js_1 = __webpack_require__(9022);
-var PaymentRequest_js_1 = __webpack_require__(6115);
-var common_1 = __webpack_require__(4524);
-var NUT12_1 = __webpack_require__(4118);
-/**
- * Splits the amount into denominations of the provided @param keyset
- * @param value amount to split
- * @param keyset keys to look up split amounts
- * @param split? optional custom split amounts
- * @param order? optional order for split amounts (default: "asc")
- * @returns Array of split amounts
- * @throws Error if @param split amount is greater than @param value amount
- */
-function splitAmount(value, keyset, split, order) {
-    if (split) {
-        if (split.reduce(function (a, b) { return a + b; }, 0) > value) {
-            throw new Error("Split is greater than total amount: ".concat(split.reduce(function (a, b) { return a + b; }, 0), " > ").concat(value));
-        }
-        split.forEach(function (amt) {
-            if (!hasCorrespondingKey(amt, keyset)) {
-                throw new Error('Provided amount preferences do not match the amounts of the mint keyset.');
-            }
-        });
-        value =
-            value -
-                split.reduce(function (curr, acc) {
-                    return curr + acc;
-                }, 0);
-    }
-    else {
-        split = [];
-    }
-    var sortedKeyAmounts = getKeysetAmounts(keyset);
-    sortedKeyAmounts.forEach(function (amt) {
-        var q = Math.floor(value / amt);
-        for (var i = 0; i < q; ++i)
-            split === null || split === void 0 ? void 0 : split.push(amt);
-        value %= amt;
-    });
-    return split.sort(function (a, b) { return (order === 'desc' ? b - a : a - b); });
-}
-exports.splitAmount = splitAmount;
-/**
- * Creates a list of amounts to keep based on the proofs we have and the proofs we want to reach.
- * @param proofsWeHave complete set of proofs stored (from current mint)
- * @param amountToKeep amount to keep
- * @param keys keys of current keyset
- * @param targetCount the target number of proofs to reach
- * @returns an array of amounts to keep
- */
-function getKeepAmounts(proofsWeHave, amountToKeep, keys, targetCount) {
-    // determines amounts we need to reach the targetCount for each amount based on the amounts of the proofs we have
-    // it tries to select amounts so that the proofs we have and the proofs we want reach the targetCount
-    var amountsWeWant = [];
-    var amountsWeHave = proofsWeHave.map(function (p) { return p.amount; });
-    var sortedKeyAmounts = getKeysetAmounts(keys, 'asc');
-    sortedKeyAmounts.forEach(function (amt) {
-        var countWeHave = amountsWeHave.filter(function (a) { return a === amt; }).length;
-        var countWeWant = Math.max(targetCount - countWeHave, 0);
-        for (var i = 0; i < countWeWant; ++i) {
-            if (amountsWeWant.reduce(function (a, b) { return a + b; }, 0) + amt > amountToKeep) {
-                break;
-            }
-            amountsWeWant.push(amt);
-        }
-    });
-    // use splitAmount to fill the rest between the sum of amountsWeHave and amountToKeep
-    var amountDiff = amountToKeep - amountsWeWant.reduce(function (a, b) { return a + b; }, 0);
-    if (amountDiff) {
-        var remainingAmounts = splitAmount(amountDiff, keys);
-        remainingAmounts.forEach(function (amt) {
-            amountsWeWant.push(amt);
-        });
-    }
-    var sortedAmountsWeWant = amountsWeWant.sort(function (a, b) { return a - b; });
-    return sortedAmountsWeWant;
-}
-exports.getKeepAmounts = getKeepAmounts;
-/**
- * returns the amounts in the keyset sorted by the order specified
- * @param keyset to search in
- * @param order order to sort the amounts in
- * @returns the amounts in the keyset sorted by the order specified
- */
-function getKeysetAmounts(keyset, order) {
-    if (order === void 0) { order = 'desc'; }
-    if (order == 'desc') {
-        return Object.keys(keyset)
-            .map(function (k) { return parseInt(k); })
-            .sort(function (a, b) { return b - a; });
-    }
-    return Object.keys(keyset)
-        .map(function (k) { return parseInt(k); })
-        .sort(function (a, b) { return a - b; });
-}
-exports.getKeysetAmounts = getKeysetAmounts;
-/**
- * Checks if the provided amount is in the keyset.
- * @param amount amount to check
- * @param keyset to search in
- * @returns true if the amount is in the keyset, false otherwise
- */
-function hasCorrespondingKey(amount, keyset) {
-    return amount in keyset;
-}
-exports.hasCorrespondingKey = hasCorrespondingKey;
-/**
- * Converts a bytes array to a number.
- * @param bytes to convert to number
- * @returns  number
- */
-function bytesToNumber(bytes) {
-    return hexToNumber((0, utils_1.bytesToHex)(bytes));
-}
-exports.bytesToNumber = bytesToNumber;
-/**
- * Converts a hex string to a number.
- * @param hex to convert to number
- * @returns number
- */
-function hexToNumber(hex) {
-    return BigInt("0x".concat(hex));
-}
-exports.hexToNumber = hexToNumber;
-/**
- * Converts a number to a hex string of 64 characters.
- * @param number (bigint) to conver to hex
- * @returns hex string start-padded to 64 characters
- */
-function numberToHexPadded64(number) {
-    return number.toString(16).padStart(64, '0');
-}
-exports.numberToHexPadded64 = numberToHexPadded64;
-function isValidHex(str) {
-    return /^[a-f0-9]*$/i.test(str);
-}
-/**
- * Checks wether a proof or a list of proofs contains a non-hex id
- * @param p Proof or list of proofs
- * @returns boolean
- */
-function hasNonHexId(p) {
-    if (Array.isArray(p)) {
-        return p.some(function (proof) { return !isValidHex(proof.id); });
-    }
-    return isValidHex(p.id);
-}
-exports.hasNonHexId = hasNonHexId;
-//used for json serialization
-function bigIntStringify(_key, value) {
-    return typeof value === 'bigint' ? value.toString() : value;
-}
-exports.bigIntStringify = bigIntStringify;
-/**
- * Helper function to encode a v3 cashu token
- * @param token to encode
- * @returns encoded token
- */
-function getEncodedTokenV3(token) {
-    var v3TokenObj = { token: [{ mint: token.mint, proofs: token.proofs }] };
-    if (token.unit) {
-        v3TokenObj.unit = token.unit;
-    }
-    if (token.memo) {
-        v3TokenObj.memo = token.memo;
-    }
-    return Constants_js_1.TOKEN_PREFIX + Constants_js_1.TOKEN_VERSION + (0, base64_js_1.encodeJsonToBase64)(v3TokenObj);
-}
-exports.getEncodedTokenV3 = getEncodedTokenV3;
-/**
- * Helper function to encode a cashu token (defaults to v4 if keyset id allows it)
- * @param token
- * @param [opts]
- */
-function getEncodedToken(token, opts) {
-    var nonHex = hasNonHexId(token.proofs);
-    if (nonHex || (opts === null || opts === void 0 ? void 0 : opts.version) === 3) {
-        if ((opts === null || opts === void 0 ? void 0 : opts.version) === 4) {
-            throw new Error('can not encode to v4 token if proofs contain non-hex keyset id');
-        }
-        return getEncodedTokenV3(token);
-    }
-    return getEncodedTokenV4(token);
-}
-exports.getEncodedToken = getEncodedToken;
-function getEncodedTokenV4(token) {
-    // Make sure each DLEQ has its blinding factor
-    token.proofs.forEach(function (p) {
-        if (p.dleq && p.dleq.r == undefined) {
-            throw new Error('Missing blinding factor in included DLEQ proof');
-        }
-    });
-    var nonHex = hasNonHexId(token.proofs);
-    if (nonHex) {
-        throw new Error('can not encode to v4 token if proofs contain non-hex keyset id');
-    }
-    var idMap = {};
-    var mint = token.mint;
-    for (var i = 0; i < token.proofs.length; i++) {
-        var proof = token.proofs[i];
-        if (idMap[proof.id]) {
-            idMap[proof.id].push(proof);
-        }
-        else {
-            idMap[proof.id] = [proof];
-        }
-    }
-    var tokenTemplate = {
-        m: mint,
-        u: token.unit || 'sat',
-        t: Object.keys(idMap).map(function (id) { return ({
-            i: (0, utils_1.hexToBytes)(id),
-            p: idMap[id].map(function (p) {
-                var _a;
-                return (__assign({ a: p.amount, s: p.secret, c: (0, utils_1.hexToBytes)(p.C) }, (p.dleq && {
-                    d: {
-                        e: (0, utils_1.hexToBytes)(p.dleq.e),
-                        s: (0, utils_1.hexToBytes)(p.dleq.s),
-                        r: (0, utils_1.hexToBytes)((_a = p.dleq.r) !== null && _a !== void 0 ? _a : '00')
-                    }
-                })));
-            })
-        }); })
-    };
-    if (token.memo) {
-        tokenTemplate.d = token.memo;
-    }
-    var encodedData = (0, cbor_js_1.encodeCBOR)(tokenTemplate);
-    var prefix = 'cashu';
-    var version = 'B';
-    var base64Data = (0, base64_js_1.encodeUint8toBase64Url)(encodedData);
-    return prefix + version + base64Data;
-}
-exports.getEncodedTokenV4 = getEncodedTokenV4;
-/**
- * Helper function to decode cashu tokens into object
- * @param token an encoded cashu token (cashuAey...)
- * @returns cashu token object
- */
-function getDecodedToken(token) {
-    // remove prefixes
-    var uriPrefixes = ['web+cashu://', 'cashu://', 'cashu:', 'cashu'];
-    uriPrefixes.forEach(function (prefix) {
-        if (!token.startsWith(prefix)) {
-            return;
-        }
-        token = token.slice(prefix.length);
-    });
-    return handleTokens(token);
-}
-exports.getDecodedToken = getDecodedToken;
-/**
- * Helper function to decode different versions of cashu tokens into an object
- * @param token an encoded cashu token (cashuAey...)
- * @returns cashu Token object
- */
-function handleTokens(token) {
-    var version = token.slice(0, 1);
-    var encodedToken = token.slice(1);
-    if (version === 'A') {
-        var parsedV3Token = (0, base64_js_1.encodeBase64ToJson)(encodedToken);
-        if (parsedV3Token.token.length > 1) {
-            throw new Error('Multi entry token are not supported');
-        }
-        var entry = parsedV3Token.token[0];
-        var tokenObj = {
-            mint: entry.mint,
-            proofs: entry.proofs,
-            unit: parsedV3Token.unit || 'sat'
-        };
-        if (parsedV3Token.memo) {
-            tokenObj.memo = parsedV3Token.memo;
-        }
-        return tokenObj;
-    }
-    else if (version === 'B') {
-        var uInt8Token = (0, base64_js_1.encodeBase64toUint8)(encodedToken);
-        var tokenData = (0, cbor_js_1.decodeCBOR)(uInt8Token);
-        var proofs_1 = [];
-        tokenData.t.forEach(function (t) {
-            return t.p.forEach(function (p) {
-                proofs_1.push(__assign({ secret: p.s, C: (0, utils_1.bytesToHex)(p.c), amount: p.a, id: (0, utils_1.bytesToHex)(t.i) }, (p.d && {
-                    dleq: {
-                        r: (0, utils_1.bytesToHex)(p.d.r),
-                        s: (0, utils_1.bytesToHex)(p.d.s),
-                        e: (0, utils_1.bytesToHex)(p.d.e)
-                    }
-                })));
-            });
-        });
-        var decodedToken = { mint: tokenData.m, proofs: proofs_1, unit: tokenData.u || 'sat' };
-        if (tokenData.d) {
-            decodedToken.memo = tokenData.d;
-        }
-        return decodedToken;
-    }
-    throw new Error('Token version is not supported');
-}
-exports.handleTokens = handleTokens;
-/**
- * Returns the keyset id of a set of keys
- * @param keys keys object to derive keyset id from
- * @returns
- */
-function deriveKeysetId(keys) {
-    var pubkeysConcat = Object.entries(keys)
-        .sort(function (a, b) { return +a[0] - +b[0]; })
-        .map(function (_a) {
-        var pubKey = _a[1];
-        return (0, utils_1.hexToBytes)(pubKey);
-    })
-        .reduce(function (prev, curr) { return mergeUInt8Arrays(prev, curr); }, new Uint8Array());
-    var hash = (0, sha256_1.sha256)(pubkeysConcat);
-    var hashHex = Buffer.from(hash).toString('hex').slice(0, 14);
-    return '00' + hashHex;
-}
-exports.deriveKeysetId = deriveKeysetId;
-function mergeUInt8Arrays(a1, a2) {
-    // sum of individual array lengths
-    var mergedArray = new Uint8Array(a1.length + a2.length);
-    mergedArray.set(a1);
-    mergedArray.set(a2, a1.length);
-    return mergedArray;
-}
-exports.mergeUInt8Arrays = mergeUInt8Arrays;
-function sortProofsById(proofs) {
-    return proofs.sort(function (a, b) { return a.id.localeCompare(b.id); });
-}
-exports.sortProofsById = sortProofsById;
-function isObj(v) {
-    return typeof v === 'object';
-}
-exports.isObj = isObj;
-function checkResponse(data) {
-    if (!isObj(data))
-        return;
-    if ('error' in data && data.error) {
-        throw new Error(data.error);
-    }
-    if ('detail' in data && data.detail) {
-        throw new Error(data.detail);
-    }
-}
-exports.checkResponse = checkResponse;
-function joinUrls() {
-    var parts = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        parts[_i] = arguments[_i];
-    }
-    return parts.map(function (part) { return part.replace(/(^\/+|\/+$)/g, ''); }).join('/');
-}
-exports.joinUrls = joinUrls;
-function sanitizeUrl(url) {
-    return url.replace(/\/$/, '');
-}
-exports.sanitizeUrl = sanitizeUrl;
-function sumProofs(proofs) {
-    return proofs.reduce(function (acc, proof) { return acc + proof.amount; }, 0);
-}
-exports.sumProofs = sumProofs;
-function decodePaymentRequest(paymentRequest) {
-    return PaymentRequest_js_1.PaymentRequest.fromEncodedRequest(paymentRequest);
-}
-exports.decodePaymentRequest = decodePaymentRequest;
-var MessageNode = /** @class */ (function () {
-    function MessageNode(message) {
-        this._value = message;
-        this._next = null;
-    }
-    Object.defineProperty(MessageNode.prototype, "value", {
-        get: function () {
-            return this._value;
-        },
-        set: function (message) {
-            this._value = message;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MessageNode.prototype, "next", {
-        get: function () {
-            return this._next;
-        },
-        set: function (node) {
-            this._next = node;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return MessageNode;
-}());
-exports.MessageNode = MessageNode;
-var MessageQueue = /** @class */ (function () {
-    function MessageQueue() {
-        this._first = null;
-        this._last = null;
-        this._size = 0;
-    }
-    Object.defineProperty(MessageQueue.prototype, "first", {
-        get: function () {
-            return this._first;
-        },
-        set: function (messageNode) {
-            this._first = messageNode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MessageQueue.prototype, "last", {
-        get: function () {
-            return this._last;
-        },
-        set: function (messageNode) {
-            this._last = messageNode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(MessageQueue.prototype, "size", {
-        get: function () {
-            return this._size;
-        },
-        set: function (v) {
-            this._size = v;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    MessageQueue.prototype.enqueue = function (message) {
-        var newNode = new MessageNode(message);
-        if (this._size === 0 || !this._last) {
-            this._first = newNode;
-            this._last = newNode;
-        }
-        else {
-            this._last.next = newNode;
-            this._last = newNode;
-        }
-        this._size++;
-        return true;
-    };
-    MessageQueue.prototype.dequeue = function () {
-        if (this._size === 0 || !this._first)
-            return null;
-        var prev = this._first;
-        this._first = prev.next;
-        prev.next = null;
-        this._size--;
-        return prev.value;
-    };
-    return MessageQueue;
-}());
-exports.MessageQueue = MessageQueue;
-/**
- * Removes all traces of DLEQs from a list of proofs
- * @param proofs The list of proofs that dleq should be stripped from
- */
-function stripDleq(proofs) {
-    return proofs.map(function (p) {
-        var newP = __assign({}, p);
-        delete newP['dleq'];
-        delete newP['dleqValid'];
-        return newP;
-    });
-}
-exports.stripDleq = stripDleq;
-/**
- * Checks that the proof has a valid DLEQ proof according to
- * keyset `keys`
- * @param proof The proof subject to verification
- * @param keyset The Mint's keyset to be used for verification
- * @returns true if verification succeeded, false otherwise
- * @throws Error if @param proof does not match any key in @param keyset
- */
-function hasValidDleq(proof, keyset) {
-    var _a;
-    if (proof.dleq == undefined) {
-        return false;
-    }
-    var dleq = {
-        e: (0, utils_1.hexToBytes)(proof.dleq.e),
-        s: (0, utils_1.hexToBytes)(proof.dleq.s),
-        r: hexToNumber((_a = proof.dleq.r) !== null && _a !== void 0 ? _a : '00')
-    };
-    if (!hasCorrespondingKey(proof.amount, keyset.keys)) {
-        throw new Error("undefined key for amount ".concat(proof.amount));
-    }
-    var key = keyset.keys[proof.amount];
-    if (!(0, NUT12_1.verifyDLEQProof_reblind)(new TextEncoder().encode(proof.secret), dleq, (0, common_1.pointFromHex)(proof.C), (0, common_1.pointFromHex)(key))) {
-        return false;
-    }
-    return true;
-}
-exports.hasValidDleq = hasValidDleq;
-
-
-/***/ }),
-
-/***/ 4395:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TOKEN_PREFIX = exports.TOKEN_VERSION = void 0;
-/**
- * per protocol definition since tokenV3 tokens have a prefix and a version number
- */
-var TOKEN_VERSION = 'A';
-exports.TOKEN_VERSION = TOKEN_VERSION;
-var TOKEN_PREFIX = 'cashu';
-exports.TOKEN_PREFIX = TOKEN_PREFIX;
-
-
-/***/ }),
-
-/***/ 9932:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getWebSocketImpl = exports.injectWebSocketImpl = void 0;
-var _WS;
-if (typeof WebSocket !== 'undefined') {
-    _WS = WebSocket;
-}
-function injectWebSocketImpl(ws) {
-    _WS = ws;
-}
-exports.injectWebSocketImpl = injectWebSocketImpl;
-function getWebSocketImpl() {
-    return _WS;
-}
-exports.getWebSocketImpl = getWebSocketImpl;
-
-
-/***/ }),
-
-/***/ 6410:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deriveSeedFromMnemonic = exports.generateNewMnemonic = exports.deriveBlindingFactor = exports.deriveSecret = void 0;
+__webpack_unused_export__ = ({ value: true });
+__webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = void 0;
 const bip32_1 = __webpack_require__(2269);
-const index_js_1 = __webpack_require__(4524);
+const index_js_1 = __webpack_require__(9480);
 const bip39_1 = __webpack_require__(3524);
 const english_1 = __webpack_require__(2782);
 const STANDARD_DERIVATION_PATH = `m/129372'/0'`;
@@ -3575,11 +23,11 @@ var DerivationType;
 const deriveSecret = (seed, keysetId, counter) => {
     return derive(seed, keysetId, counter, DerivationType.SECRET);
 };
-exports.deriveSecret = deriveSecret;
+__webpack_unused_export__ = deriveSecret;
 const deriveBlindingFactor = (seed, keysetId, counter) => {
     return derive(seed, keysetId, counter, DerivationType.BLINDING_FACTOR);
 };
-exports.deriveBlindingFactor = deriveBlindingFactor;
+__webpack_unused_export__ = deriveBlindingFactor;
 const derive = (seed, keysetId, counter, secretOrBlinding) => {
     const hdkey = bip32_1.HDKey.fromMasterSeed(seed);
     const keysetIdInt = (0, index_js_1.getKeysetIdInt)(keysetId);
@@ -3594,17 +42,17 @@ const generateNewMnemonic = () => {
     const mnemonic = (0, bip39_1.generateMnemonic)(english_1.wordlist, 128);
     return mnemonic;
 };
-exports.generateNewMnemonic = generateNewMnemonic;
+__webpack_unused_export__ = generateNewMnemonic;
 const deriveSeedFromMnemonic = (mnemonic) => {
     const seed = (0, bip39_1.mnemonicToSeedSync)(mnemonic);
     return seed;
 };
-exports.deriveSeedFromMnemonic = deriveSeedFromMnemonic;
+__webpack_unused_export__ = deriveSeedFromMnemonic;
 //# sourceMappingURL=NUT09.js.map
 
 /***/ }),
 
-/***/ 3763:
+/***/ 9607:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3615,7 +63,7 @@ const utils_1 = __webpack_require__(3901);
 const sha256_1 = __webpack_require__(7178);
 const secp256k1_1 = __webpack_require__(6001);
 const utils_2 = __webpack_require__(4248);
-const NUT11_js_1 = __webpack_require__(9877);
+const NUT11_js_1 = __webpack_require__(5329);
 const createP2PKsecret = (pubkey) => {
     const newSecret = [
         'P2PK',
@@ -3679,17 +127,18 @@ exports.getSignedProof = getSignedProof;
 
 /***/ }),
 
-/***/ 4118:
+/***/ 5882:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
+var __webpack_unused_export__;
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.verifyDLEQProof_reblind = exports.verifyDLEQProof = void 0;
-const index_js_1 = __webpack_require__(4524);
+__webpack_unused_export__ = ({ value: true });
+__webpack_unused_export__ = exports.I1 = void 0;
+const index_js_1 = __webpack_require__(9480);
 const utils_1 = __webpack_require__(3901);
 const secp256k1_1 = __webpack_require__(6001);
-const utils_js_1 = __webpack_require__(4788);
+const utils_js_1 = __webpack_require__(4832);
 function arraysEqual(arr1, arr2) {
     if (arr1.length !== arr2.length)
         return false;
@@ -3709,7 +158,7 @@ const verifyDLEQProof = (dleq, B_, C_, A) => {
     const hash = (0, index_js_1.hash_e)([R_1, R_2, A, C_]); // e == hash(R1, R2, A, C')
     return arraysEqual(hash, dleq.e);
 };
-exports.verifyDLEQProof = verifyDLEQProof;
+exports.I1 = verifyDLEQProof;
 const verifyDLEQProof_reblind = (secret, // secret
 dleq, C, // unblinded e-cash signature point
 A // mint public key point
@@ -3720,29 +169,30 @@ A // mint public key point
     const C_ = C.add(A.multiply(dleq.r)); // Re-blind the e-cash signature
     const bG = secp256k1_1.secp256k1.ProjectivePoint.fromPrivateKey(dleq.r);
     const B_ = Y.add(bG); // Re-blind the message
-    return (0, exports.verifyDLEQProof)(dleq, B_, C_, A);
+    return (0, exports.I1)(dleq, B_, C_, A);
 };
-exports.verifyDLEQProof_reblind = verifyDLEQProof_reblind;
+__webpack_unused_export__ = verifyDLEQProof_reblind;
 //# sourceMappingURL=NUT12.js.map
 
 /***/ }),
 
-/***/ 4962:
+/***/ 646:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
+var __webpack_unused_export__;
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.serializeBlindedMessage = exports.deserializeProof = exports.serializeProof = exports.constructProofFromPromise = exports.unblindSignature = exports.blindMessage = exports.createRandomBlindedMessage = void 0;
+__webpack_unused_export__ = ({ value: true });
+__webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = void 0;
 const secp256k1_1 = __webpack_require__(6001);
 const utils_1 = __webpack_require__(4248);
-const utils_js_1 = __webpack_require__(4788);
-const index_js_1 = __webpack_require__(4524);
-const NUT11_js_1 = __webpack_require__(3763);
+const utils_js_1 = __webpack_require__(4832);
+const index_js_1 = __webpack_require__(9480);
+const NUT11_js_1 = __webpack_require__(9607);
 function createRandomBlindedMessage(privateKey) {
     return blindMessage((0, utils_1.randomBytes)(32), (0, utils_js_1.bytesToNumber)(secp256k1_1.secp256k1.utils.randomPrivateKey()), privateKey);
 }
-exports.createRandomBlindedMessage = createRandomBlindedMessage;
+__webpack_unused_export__ = createRandomBlindedMessage;
 function blindMessage(secret, r, privateKey) {
     const Y = (0, index_js_1.hashToCurve)(secret);
     if (!r) {
@@ -3755,12 +205,12 @@ function blindMessage(secret, r, privateKey) {
     }
     return { B_, r, secret };
 }
-exports.blindMessage = blindMessage;
+__webpack_unused_export__ = blindMessage;
 function unblindSignature(C_, r, A) {
     const C = C_.subtract(A.multiply(r));
     return C;
 }
-exports.unblindSignature = unblindSignature;
+__webpack_unused_export__ = unblindSignature;
 function constructProofFromPromise(promise, r, secret, key) {
     const A = key;
     const C = unblindSignature(promise.C_, r, A);
@@ -3772,7 +222,7 @@ function constructProofFromPromise(promise, r, secret, key) {
     };
     return proof;
 }
-exports.constructProofFromPromise = constructProofFromPromise;
+__webpack_unused_export__ = constructProofFromPromise;
 const serializeProof = (proof) => {
     return {
         amount: proof.amount,
@@ -3782,7 +232,7 @@ const serializeProof = (proof) => {
         witness: JSON.stringify(proof.witness)
     };
 };
-exports.serializeProof = serializeProof;
+__webpack_unused_export__ = serializeProof;
 const deserializeProof = (proof) => {
     return {
         amount: proof.amount,
@@ -3792,19 +242,19 @@ const deserializeProof = (proof) => {
         witness: proof.witness ? JSON.parse(proof.witness) : undefined
     };
 };
-exports.deserializeProof = deserializeProof;
+__webpack_unused_export__ = deserializeProof;
 const serializeBlindedMessage = (bm, amount) => {
     return {
         B_: bm.B_.toHex(true),
         amount: amount
     };
 };
-exports.serializeBlindedMessage = serializeBlindedMessage;
+__webpack_unused_export__ = serializeBlindedMessage;
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 9877:
+/***/ 5329:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -3827,7 +277,7 @@ exports.parseSecret = parseSecret;
 
 /***/ }),
 
-/***/ 4524:
+/***/ 9480:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3837,7 +287,7 @@ exports.deriveKeysetId = exports.deserializeMintKeys = exports.serializeMintKeys
 const secp256k1_1 = __webpack_require__(6001);
 const sha256_1 = __webpack_require__(7178);
 const utils_1 = __webpack_require__(3901);
-const utils_js_1 = __webpack_require__(4788);
+const utils_js_1 = __webpack_require__(4832);
 const buffer_1 = __webpack_require__(3410);
 const DOMAIN_SEPARATOR = (0, utils_1.hexToBytes)('536563703235366b315f48617368546f43757276655f43617368755f');
 function hashToCurve(secret) {
@@ -3930,7 +380,7 @@ function mergeUInt8Arrays(a1, a2) {
 
 /***/ }),
 
-/***/ 4788:
+/***/ 4832:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5465,7 +1915,7 @@ exports.mapToCurveSimpleSWU = mapToCurveSimpleSWU;
  */
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 const curve_js_1 = __webpack_require__(8015);
-const mod = __webpack_require__(9542);
+const modular_js_1 = __webpack_require__(9542);
 const ut = __webpack_require__(3901);
 const utils_js_1 = __webpack_require__(3901);
 function validateSigVerOpts(opts) {
@@ -5626,7 +2076,7 @@ const _0n = BigInt(0), _1n = BigInt(1), _2n = BigInt(2), _3n = BigInt(3), _4n = 
 function weierstrassPoints(opts) {
     const CURVE = validatePointOpts(opts);
     const { Fp } = CURVE; // All curves has same field / group length as for now, but they can differ
-    const Fn = mod.Field(CURVE.n, CURVE.nBitLength);
+    const Fn = (0, modular_js_1.Field)(CURVE.n, CURVE.nBitLength);
     const toBytes = CURVE.toBytes ||
         ((_c, point, _isCompressed) => {
             const a = point.toAffine();
@@ -5684,7 +2134,7 @@ function weierstrassPoints(opts) {
             throw new Error('invalid private key, expected hex or ' + nByteLength + ' bytes, got ' + typeof key);
         }
         if (wrapPrivateKey)
-            num = mod.mod(num, N); // disabled by default, enabled for BLS
+            num = (0, modular_js_1.mod)(num, N); // disabled by default, enabled for BLS
         ut.aInRange('private key', num, _1n, N); // num in range [1..N-1]
         return num;
     }
@@ -6091,10 +2541,10 @@ function weierstrass(curveDef) {
     const compressedLen = Fp.BYTES + 1; // e.g. 33 for 32
     const uncompressedLen = 2 * Fp.BYTES + 1; // e.g. 65 for 32
     function modN(a) {
-        return mod.mod(a, CURVE_ORDER);
+        return (0, modular_js_1.mod)(a, CURVE_ORDER);
     }
     function invN(a) {
-        return mod.invert(a, CURVE_ORDER);
+        return (0, modular_js_1.invert)(a, CURVE_ORDER);
     }
     const { ProjectivePoint: Point, normPrivateKeyToScalar, weierstrassEquation, isWithinCurveOrder, } = weierstrassPoints({
         ...CURVE,
@@ -6243,8 +2693,8 @@ function weierstrass(curveDef) {
          * (groupLen + ceil(groupLen / 2)) with modulo bias being negligible.
          */
         randomPrivateKey: () => {
-            const length = mod.getMinHashLength(CURVE.n);
-            return mod.mapHashToField(CURVE.randomBytes(length), CURVE.n);
+            const length = (0, modular_js_1.getMinHashLength)(CURVE.n);
+            return (0, modular_js_1.mapHashToField)(CURVE.randomBytes(length), CURVE.n);
         },
         /**
          * Creates precompute table for an arbitrary EC point. Makes point "cached".
@@ -6580,7 +3030,7 @@ function SWUFpSqrtRatio(Fp, Z) {
  * https://www.rfc-editor.org/rfc/rfc9380#section-6.6.2
  */
 function mapToCurveSimpleSWU(Fp, opts) {
-    mod.validateField(Fp);
+    (0, modular_js_1.validateField)(Fp);
     if (!Fp.isValid(opts.A) || !Fp.isValid(opts.B) || !Fp.isValid(opts.Z))
         throw new Error('mapToCurveSimpleSWU: invalid opts');
     const sqrtRatio = SWUFpSqrtRatio(Fp, opts.Z);
@@ -6923,7 +3373,7 @@ exports.encodeToCurve = (() => htf.encodeToCurve)();
 "use strict";
 
 /**
- * Assertion helpers
+ * Internal assertion helpers.
  * @module
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
@@ -6932,32 +3382,37 @@ exports.abytes = abytes;
 exports.ahash = ahash;
 exports.aexists = aexists;
 exports.aoutput = aoutput;
+/** Asserts something is positive integer. */
 function anumber(n) {
     if (!Number.isSafeInteger(n) || n < 0)
         throw new Error('positive integer expected, got ' + n);
 }
-// copied from utils
+/** Is number an Uint8Array? Copied from utils for perf. */
 function isBytes(a) {
     return a instanceof Uint8Array || (ArrayBuffer.isView(a) && a.constructor.name === 'Uint8Array');
 }
+/** Asserts something is Uint8Array. */
 function abytes(b, ...lengths) {
     if (!isBytes(b))
         throw new Error('Uint8Array expected');
     if (lengths.length > 0 && !lengths.includes(b.length))
         throw new Error('Uint8Array expected of length ' + lengths + ', got length=' + b.length);
 }
+/** Asserts something is hash */
 function ahash(h) {
     if (typeof h !== 'function' || typeof h.create !== 'function')
         throw new Error('Hash should be wrapped by utils.wrapConstructor');
     anumber(h.outputLen);
     anumber(h.blockLen);
 }
+/** Asserts a hash instance has not been destroyed / finished */
 function aexists(instance, checkFinished = true) {
     if (instance.destroyed)
         throw new Error('Hash instance has been destroyed');
     if (checkFinished && instance.finished)
         throw new Error('Hash#digest() has already been called');
 }
+/** Asserts output is properly-sized byte array */
 function aoutput(out, instance) {
     abytes(out);
     const min = instance.outputLen;
@@ -6975,17 +3430,17 @@ function aoutput(out, instance) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.HashMD = exports.Maj = exports.Chi = void 0;
+exports.HashMD = void 0;
 exports.setBigUint64 = setBigUint64;
-const _assert_js_1 = __webpack_require__(4894);
-const utils_js_1 = __webpack_require__(4248);
+exports.Chi = Chi;
+exports.Maj = Maj;
 /**
- * Merkle-Damgard hash utils.
+ * Internal Merkle-Damgard hash utils.
  * @module
  */
-/**
- * Polyfill for Safari 14
- */
+const _assert_js_1 = __webpack_require__(4894);
+const utils_js_1 = __webpack_require__(4248);
+/** Polyfill for Safari 14. https://caniuse.com/mdn-javascript_builtins_dataview_setbiguint64 */
 function setBigUint64(view, byteOffset, value, isLE) {
     if (typeof view.setBigUint64 === 'function')
         return view.setBigUint64(byteOffset, value, isLE);
@@ -6998,16 +3453,14 @@ function setBigUint64(view, byteOffset, value, isLE) {
     view.setUint32(byteOffset + h, wh, isLE);
     view.setUint32(byteOffset + l, wl, isLE);
 }
-/**
- * Choice: a ? b : c
- */
-const Chi = (a, b, c) => (a & b) ^ (~a & c);
-exports.Chi = Chi;
-/**
- * Majority function, true if any two inputs is true
- */
-const Maj = (a, b, c) => (a & b) ^ (a & c) ^ (b & c);
-exports.Maj = Maj;
+/** Choice: a ? b : c */
+function Chi(a, b, c) {
+    return (a & b) ^ (~a & c);
+}
+/** Majority function, true if any two inputs is true. */
+function Maj(a, b, c) {
+    return (a & b) ^ (a & c) ^ (b & c);
+}
 /**
  * Merkle-Damgard hash construction base class.
  * Could be used to create MD5, RIPEMD, SHA1, SHA2.
@@ -7125,13 +3578,13 @@ exports.add5L = exports.add5H = exports.add4H = exports.add4L = exports.add3H = 
 exports.fromBig = fromBig;
 exports.split = split;
 exports.add = add;
-const U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
-const _32n = /* @__PURE__ */ BigInt(32);
 /**
- * BigUint64Array is too slow as per 2024, so we implement it using Uint32Array.
+ * Internal helpers for u64. BigUint64Array is too slow as per 2025, so we implement it using Uint32Array.
  * @todo re-check https://issues.chromium.org/issues/42212588
  * @module
  */
+const U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
+const _32n = /* @__PURE__ */ BigInt(32);
 function fromBig(n, le = false) {
     if (le)
         return { h: Number(n & U32_MASK64), l: Number((n >> _32n) & U32_MASK64) };
@@ -7218,9 +3671,13 @@ exports["default"] = u64;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.crypto = void 0;
-// We prefer WebCrypto aka globalThis.crypto, which exists in node.js 16+.
-// Falls back to Node.js built-in crypto for Node.js <=v14
-// See utils.ts for details.
+/**
+ * Internal webcrypto alias.
+ * We prefer WebCrypto aka globalThis.crypto, which exists in node.js 16+.
+ * Falls back to Node.js built-in crypto for Node.js <=v14.
+ * See utils.ts for details.
+ * @module
+ */
 // @ts-ignore
 const nc = __webpack_require__(7598);
 exports.crypto = nc && typeof nc === 'object' && 'webcrypto' in nc
@@ -7239,12 +3696,12 @@ exports.crypto = nc && typeof nc === 'object' && 'webcrypto' in nc
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.hmac = exports.HMAC = void 0;
-const _assert_js_1 = __webpack_require__(4894);
-const utils_js_1 = __webpack_require__(4248);
 /**
  * HMAC: RFC2104 message authentication code.
  * @module
  */
+const _assert_js_1 = __webpack_require__(4894);
+const utils_js_1 = __webpack_require__(4248);
 class HMAC extends utils_js_1.Hash {
     constructor(hash, _key) {
         super();
@@ -7336,6 +3793,10 @@ exports.hmac.create = (hash, key) => new HMAC(hash, key);
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.pbkdf2 = pbkdf2;
 exports.pbkdf2Async = pbkdf2Async;
+/**
+ * PBKDF (RFC 2898). Can be used to create a key from password and salt.
+ * @module
+ */
 const _assert_js_1 = __webpack_require__(4894);
 const hmac_js_1 = __webpack_require__(1494);
 const utils_js_1 = __webpack_require__(4248);
@@ -7439,14 +3900,14 @@ async function pbkdf2Async(hash, password, salt, opts) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ripemd160 = exports.RIPEMD160 = void 0;
-const _md_js_1 = __webpack_require__(4901);
-const utils_js_1 = __webpack_require__(4248);
 /**
  * RIPEMD-160 legacy hash function.
  * https://homes.esat.kuleuven.be/~bosselae/ripemd160.html
  * https://homes.esat.kuleuven.be/~bosselae/ripemd160/pdf/AB-9601/AB-9601.pdf
  * @module
  */
+const _md_js_1 = __webpack_require__(4901);
+const utils_js_1 = __webpack_require__(4248);
 const Rho = /* @__PURE__ */ new Uint8Array([7, 4, 13, 1, 10, 6, 15, 3, 12, 0, 9, 5, 2, 14, 11, 8]);
 const Id = /* @__PURE__ */ new Uint8Array(new Array(16).fill(0).map((_, i) => i));
 const Pi = /* @__PURE__ */ Id.map((i) => (9 * i + 5) % 16);
@@ -7553,8 +4014,6 @@ exports.ripemd160 = (0, utils_js_1.wrapConstructor)(() => new RIPEMD160());
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.sha224 = exports.sha256 = exports.SHA256 = void 0;
-const _md_js_1 = __webpack_require__(4901);
-const utils_js_1 = __webpack_require__(4248);
 /**
  * SHA2-256 a.k.a. sha256. In JS, it is the fastest hash, even faster than Blake3.
  *
@@ -7564,6 +4023,8 @@ const utils_js_1 = __webpack_require__(4248);
  * Check out [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf).
  * @module
  */
+const _md_js_1 = __webpack_require__(4901);
+const utils_js_1 = __webpack_require__(4248);
 /** Round constants: first 32 bits of fractional parts of the cube roots of the first 64 primes 2..311). */
 // prettier-ignore
 const SHA256_K = /* @__PURE__ */ new Uint32Array([
@@ -7694,9 +4155,6 @@ exports.sha224 = (0, utils_js_1.wrapConstructor)(() => new SHA224());
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.sha384 = exports.sha512_256 = exports.sha512_224 = exports.sha512 = exports.SHA384 = exports.SHA512_256 = exports.SHA512_224 = exports.SHA512 = void 0;
-const _md_js_1 = __webpack_require__(4901);
-const _u64_js_1 = __webpack_require__(8636);
-const utils_js_1 = __webpack_require__(4248);
 /**
  * SHA2-512 a.k.a. sha512 and sha384. It is slower than sha256 in js because u64 operations are slow.
  *
@@ -7704,6 +4162,9 @@ const utils_js_1 = __webpack_require__(4248);
  * [the paper on truncated SHA512/256](https://eprint.iacr.org/2010/548.pdf).
  * @module
  */
+const _md_js_1 = __webpack_require__(4901);
+const _u64_js_1 = __webpack_require__(8636);
+const utils_js_1 = __webpack_require__(4248);
 // Round contants (first 32 bits of the fractional parts of the cube roots of the first 80 primes 2..409):
 // prettier-ignore
 const [SHA512_Kh, SHA512_Kl] = /* @__PURE__ */ (() => _u64_js_1.default.split([
@@ -7948,10 +4409,20 @@ exports.sha384 = (0, utils_js_1.wrapConstructor)(() => new SHA384());
 
 "use strict";
 
+/**
+ * Utilities for hex, bytes, CSPRNG.
+ * @module
+ */
 /*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Hash = exports.nextTick = exports.byteSwapIfBE = exports.byteSwap = exports.isLE = exports.rotl = exports.rotr = exports.createView = exports.u32 = exports.u8 = void 0;
+exports.Hash = exports.nextTick = exports.byteSwapIfBE = exports.isLE = void 0;
 exports.isBytes = isBytes;
+exports.u8 = u8;
+exports.u32 = u32;
+exports.createView = createView;
+exports.rotr = rotr;
+exports.rotl = rotl;
+exports.byteSwap = byteSwap;
 exports.byteSwap32 = byteSwap32;
 exports.bytesToHex = bytesToHex;
 exports.hexToBytes = hexToBytes;
@@ -7964,10 +4435,6 @@ exports.wrapConstructor = wrapConstructor;
 exports.wrapConstructorWithOpts = wrapConstructorWithOpts;
 exports.wrapXOFConstructorWithOpts = wrapXOFConstructorWithOpts;
 exports.randomBytes = randomBytes;
-/**
- * Utilities for hex, bytes, CSPRNG.
- * @module
- */
 // We use WebCrypto aka globalThis.crypto, which exists in browsers and node.js 16+.
 // node.js versions earlier than v19 don't declare it in global scope.
 // For node.js, package.json#exports field mapping rewrites import
@@ -7982,35 +4449,41 @@ function isBytes(a) {
     return a instanceof Uint8Array || (ArrayBuffer.isView(a) && a.constructor.name === 'Uint8Array');
 }
 // Cast array to different type
-const u8 = (arr) => new Uint8Array(arr.buffer, arr.byteOffset, arr.byteLength);
-exports.u8 = u8;
-const u32 = (arr) => new Uint32Array(arr.buffer, arr.byteOffset, Math.floor(arr.byteLength / 4));
-exports.u32 = u32;
+function u8(arr) {
+    return new Uint8Array(arr.buffer, arr.byteOffset, arr.byteLength);
+}
+function u32(arr) {
+    return new Uint32Array(arr.buffer, arr.byteOffset, Math.floor(arr.byteLength / 4));
+}
 // Cast array to view
-const createView = (arr) => new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
-exports.createView = createView;
+function createView(arr) {
+    return new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
+}
 /** The rotate right (circular right shift) operation for uint32 */
-const rotr = (word, shift) => (word << (32 - shift)) | (word >>> shift);
-exports.rotr = rotr;
+function rotr(word, shift) {
+    return (word << (32 - shift)) | (word >>> shift);
+}
 /** The rotate left (circular left shift) operation for uint32 */
-const rotl = (word, shift) => (word << shift) | ((word >>> (32 - shift)) >>> 0);
-exports.rotl = rotl;
+function rotl(word, shift) {
+    return (word << shift) | ((word >>> (32 - shift)) >>> 0);
+}
 /** Is current platform little-endian? Most are. Big-Endian platform: IBM */
 exports.isLE = (() => new Uint8Array(new Uint32Array([0x11223344]).buffer)[0] === 0x44)();
 // The byte swap operation for uint32
-const byteSwap = (word) => ((word << 24) & 0xff000000) |
-    ((word << 8) & 0xff0000) |
-    ((word >>> 8) & 0xff00) |
-    ((word >>> 24) & 0xff);
-exports.byteSwap = byteSwap;
+function byteSwap(word) {
+    return (((word << 24) & 0xff000000) |
+        ((word << 8) & 0xff0000) |
+        ((word >>> 8) & 0xff00) |
+        ((word >>> 24) & 0xff));
+}
 /** Conditionally byte swap if on a big-endian platform */
 exports.byteSwapIfBE = exports.isLE
     ? (n) => n
-    : (n) => (0, exports.byteSwap)(n);
+    : (n) => byteSwap(n);
 /** In place byte swap for Uint32Array */
 function byteSwap32(arr) {
     for (let i = 0; i < arr.length; i++) {
-        arr[i] = (0, exports.byteSwap)(arr[i]);
+        arr[i] = byteSwap(arr[i]);
     }
 }
 // Array where index 0xf0 (240) is mapped to string 'f0'
@@ -8062,12 +4535,14 @@ function hexToBytes(hex) {
     }
     return array;
 }
-// There is no setImmediate in browser and setTimeout is slow.
-// call of async fn will return Promise, which will be fullfiled only on
-// next scheduler queue processing step and this is exactly what we need.
+/**
+ * There is no setImmediate in browser and setTimeout is slow.
+ * Call of async fn will return Promise, which will be fullfiled only on
+ * next scheduler queue processing step and this is exactly what we need.
+ */
 const nextTick = async () => { };
 exports.nextTick = nextTick;
-// Returns control to thread each 'tick' ms to avoid blocking
+/** Returns control to thread each 'tick' ms to avoid blocking. */
 async function asyncLoop(iters, tick, cb) {
     let ts = Date.now();
     for (let i = 0; i < iters; i++) {
@@ -8118,7 +4593,7 @@ function concatBytes(...arrays) {
     }
     return res;
 }
-// For runtime check if class implements interface
+/** For runtime check if class implements interface */
 class Hash {
     // Safe version that clones internal state
     clone() {
@@ -8132,6 +4607,7 @@ function checkOpts(defaults, opts) {
     const merged = Object.assign(defaults, opts);
     return merged;
 }
+/** Wraps hash function, creating an interface on top of it */
 function wrapConstructor(hashCons) {
     const hashC = (msg) => hashCons().update(toBytes(msg)).digest();
     const tmp = hashCons();
@@ -8156,9 +4632,7 @@ function wrapXOFConstructorWithOpts(hashCons) {
     hashC.create = (opts) => hashCons(opts);
     return hashC;
 }
-/**
- * Secure PRNG. Uses `crypto.getRandomValues`, which defers to OS.
- */
+/** Cryptographically secure PRNG. Uses internal OS-level `crypto.getRandomValues`. */
 function randomBytes(bytesLength = 32) {
     if (crypto_1.crypto && typeof crypto_1.crypto.getRandomValues === 'function') {
         return crypto_1.crypto.getRandomValues(new Uint8Array(bytesLength));
@@ -8733,22 +5207,21 @@ exports.bytes = exports.stringToBytes;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HDKey = exports.HARDENED_OFFSET = void 0;
 /**
- * BIP32 hierarchical deterministic (HD) wallets over secp256k1.
+ * @module BIP32 hierarchical deterministic (HD) wallets over secp256k1.
  * @example
-
-import { HDKey } from "@scure/bip32";
-const hdkey1 = HDKey.fromMasterSeed(seed);
-const hdkey2 = HDKey.fromExtendedKey(base58key);
-const hdkey3 = HDKey.fromJSON({ xpriv: string });
-
-// props
-[hdkey1.depth, hdkey1.index, hdkey1.chainCode];
-console.log(hdkey2.privateKey, hdkey2.publicKey);
-console.log(hdkey3.derive("m/0/2147483647'/1"));
-const sig = hdkey3.sign(hash);
-hdkey3.verify(hash, sig);
-
- * @module
+ * ```js
+ * import { HDKey } from "@scure/bip32";
+ * const hdkey1 = HDKey.fromMasterSeed(seed);
+ * const hdkey2 = HDKey.fromExtendedKey(base58key);
+ * const hdkey3 = HDKey.fromJSON({ xpriv: string });
+ *
+ * // props
+ * [hdkey1.depth, hdkey1.index, hdkey1.chainCode];
+ * console.log(hdkey2.privateKey, hdkey2.publicKey);
+ * console.log(hdkey3.derive("m/0/2147483647'/1"));
+ * const sig = hdkey3.sign(hash);
+ * hdkey3.verify(hash, sig);
+ * ```
  */
 /*! scure-bip32 - MIT License (c) 2022 Patricio Palladino, Paul Miller (paulmillr.com) */
 const hmac_1 = __webpack_require__(1494);
@@ -9035,7 +5508,9 @@ exports.HDKey = HDKey;
 /**
  * Audited & minimal JS implementation of
  * [BIP39 mnemonic phrases](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki).
+ * @module
  * @example
+```js
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 const mn = bip39.generateMnemonic(wordlist);
@@ -9057,8 +5532,7 @@ import { wordlist as portuguese } from '@scure/bip39/wordlists/portuguese';
 import { wordlist as simplifiedChinese } from '@scure/bip39/wordlists/simplified-chinese';
 import { wordlist as spanish } from '@scure/bip39/wordlists/spanish';
 import { wordlist as traditionalChinese } from '@scure/bip39/wordlists/traditional-chinese';
-
- * @module
+```
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateMnemonic = generateMnemonic;
@@ -13624,6 +10098,1900 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
   buffer[offset + i - d] |= s * 128
 }
+
+
+/***/ }),
+
+/***/ 4060:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getEncodedToken: () => (/* binding */ St)
+/* harmony export */ });
+/* unused harmony exports CashuMint, CashuWallet, CheckStateEnum, MeltQuoteState, MintQuoteState, OutputData, PaymentRequest, PaymentRequestTransportType, decodePaymentRequest, deriveKeysetId, getDecodedToken, getDecodedTokenBinary, getEncodedTokenBinary, getEncodedTokenV4, injectWebSocketImpl, setGlobalRequestOptions */
+/* harmony import */ var _cashu_crypto_modules_client_NUT12__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5882);
+/* harmony import */ var _cashu_crypto_modules_common__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9480);
+/* harmony import */ var _noble_curves_abstract_utils__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(3286);
+/* harmony import */ var buffer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(181);
+/* harmony import */ var _cashu_crypto_modules_client__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(646);
+/* harmony import */ var _cashu_crypto_modules_client_NUT11__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(9607);
+/* harmony import */ var _cashu_crypto_modules_client_NUT09__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3358);
+
+
+
+
+
+
+
+
+
+function Te(s) {
+  return buffer__WEBPACK_IMPORTED_MODULE_2__.Buffer.from(s).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function me(s) {
+  return R.from(s, "base64");
+}
+function Ue(s) {
+  const e = JSON.stringify(s);
+  return xe(buffer__WEBPACK_IMPORTED_MODULE_2__.Buffer.from(e).toString("base64"));
+}
+function Fe(s) {
+  const e = R.from(Me(s), "base64").toString();
+  return JSON.parse(e);
+}
+function Me(s) {
+  return s.replace(/-/g, "+").replace(/_/g, "/").split("=")[0];
+}
+function xe(s) {
+  return s.replace(/\+/g, "-").replace(/\//g, "_").split("=")[0];
+}
+function Ne(s) {
+  return typeof s == "number" || typeof s == "string";
+}
+function V(s) {
+  const e = [];
+  return G(s, e), new Uint8Array(e);
+}
+function G(s, e) {
+  if (s === null)
+    e.push(246);
+  else if (s === void 0)
+    e.push(247);
+  else if (typeof s == "boolean")
+    e.push(s ? 245 : 244);
+  else if (typeof s == "number")
+    ye(s, e);
+  else if (typeof s == "string")
+    ge(s, e);
+  else if (Array.isArray(s))
+    Be(s, e);
+  else if (s instanceof Uint8Array)
+    Ke(s, e);
+  else if (typeof s == "object")
+    Oe(s, e);
+  else
+    throw new Error("Unsupported type");
+}
+function ye(s, e) {
+  if (s < 24)
+    e.push(s);
+  else if (s < 256)
+    e.push(24, s);
+  else if (s < 65536)
+    e.push(25, s >> 8, s & 255);
+  else if (s < 4294967296)
+    e.push(26, s >> 24, s >> 16 & 255, s >> 8 & 255, s & 255);
+  else
+    throw new Error("Unsupported integer size");
+}
+function Ke(s, e) {
+  const t = s.length;
+  if (t < 24)
+    e.push(64 + t);
+  else if (t < 256)
+    e.push(88, t);
+  else if (t < 65536)
+    e.push(89, t >> 8 & 255, t & 255);
+  else if (t < 4294967296)
+    e.push(
+      90,
+      t >> 24 & 255,
+      t >> 16 & 255,
+      t >> 8 & 255,
+      t & 255
+    );
+  else
+    throw new Error("Byte string too long to encode");
+  for (let n = 0; n < s.length; n++)
+    e.push(s[n]);
+}
+function ge(s, e) {
+  const t = new TextEncoder().encode(s), n = t.length;
+  if (n < 24)
+    e.push(96 + n);
+  else if (n < 256)
+    e.push(120, n);
+  else if (n < 65536)
+    e.push(121, n >> 8 & 255, n & 255);
+  else if (n < 4294967296)
+    e.push(
+      122,
+      n >> 24 & 255,
+      n >> 16 & 255,
+      n >> 8 & 255,
+      n & 255
+    );
+  else
+    throw new Error("String too long to encode");
+  for (let r = 0; r < t.length; r++)
+    e.push(t[r]);
+}
+function Be(s, e) {
+  const t = s.length;
+  if (t < 24)
+    e.push(128 | t);
+  else if (t < 256)
+    e.push(152, t);
+  else if (t < 65536)
+    e.push(153, t >> 8, t & 255);
+  else
+    throw new Error("Unsupported array length");
+  for (const n of s)
+    G(n, e);
+}
+function Oe(s, e) {
+  const t = Object.keys(s);
+  ye(t.length, e), e[e.length - 1] |= 160;
+  for (const n of t)
+    ge(n, e), G(s[n], e);
+}
+function J(s) {
+  const e = new DataView(s.buffer, s.byteOffset, s.byteLength);
+  return Q(e, 0).value;
+}
+function Q(s, e) {
+  if (e >= s.byteLength)
+    throw new Error("Unexpected end of data");
+  const t = s.getUint8(e++), n = t >> 5, r = t & 31;
+  switch (n) {
+    case 0:
+      return Re(s, e, r);
+    case 1:
+      return Le(s, e, r);
+    case 2:
+      return Qe(s, e, r);
+    case 3:
+      return We(s, e, r);
+    case 4:
+      return je(s, e, r);
+    case 5:
+      return He(s, e, r);
+    case 7:
+      return $e(s, e, r);
+    default:
+      throw new Error(`Unsupported major type: ${n}`);
+  }
+}
+function K(s, e, t) {
+  if (t < 24) return { value: t, offset: e };
+  if (t === 24) return { value: s.getUint8(e++), offset: e };
+  if (t === 25) {
+    const n = s.getUint16(e, !1);
+    return e += 2, { value: n, offset: e };
+  }
+  if (t === 26) {
+    const n = s.getUint32(e, !1);
+    return e += 4, { value: n, offset: e };
+  }
+  if (t === 27) {
+    const n = s.getUint32(e, !1), r = s.getUint32(e + 4, !1);
+    return e += 8, { value: n * 2 ** 32 + r, offset: e };
+  }
+  throw new Error(`Unsupported length: ${t}`);
+}
+function Re(s, e, t) {
+  const { value: n, offset: r } = K(s, e, t);
+  return { value: n, offset: r };
+}
+function Le(s, e, t) {
+  const { value: n, offset: r } = K(s, e, t);
+  return { value: -1 - n, offset: r };
+}
+function Qe(s, e, t) {
+  const { value: n, offset: r } = K(s, e, t);
+  if (r + n > s.byteLength)
+    throw new Error("Byte string length exceeds data length");
+  return { value: new Uint8Array(s.buffer, s.byteOffset + r, n), offset: r + n };
+}
+function We(s, e, t) {
+  const { value: n, offset: r } = K(s, e, t);
+  if (r + n > s.byteLength)
+    throw new Error("String length exceeds data length");
+  const o = new Uint8Array(s.buffer, s.byteOffset + r, n);
+  return { value: new TextDecoder().decode(o), offset: r + n };
+}
+function je(s, e, t) {
+  const { value: n, offset: r } = K(s, e, t), o = [];
+  let i = r;
+  for (let c = 0; c < n; c++) {
+    const a = Q(s, i);
+    o.push(a.value), i = a.offset;
+  }
+  return { value: o, offset: i };
+}
+function He(s, e, t) {
+  const { value: n, offset: r } = K(s, e, t), o = {};
+  let i = r;
+  for (let c = 0; c < n; c++) {
+    const a = Q(s, i);
+    if (!Ne(a.value))
+      throw new Error("Invalid key type");
+    const h = Q(s, a.offset);
+    o[a.value] = h.value, i = h.offset;
+  }
+  return { value: o, offset: i };
+}
+function Ce(s) {
+  const e = (s & 31744) >> 10, t = s & 1023, n = s & 32768 ? -1 : 1;
+  return e === 0 ? n * 2 ** -14 * (t / 1024) : e === 31 ? t ? NaN : n * (1 / 0) : n * 2 ** (e - 15) * (1 + t / 1024);
+}
+function $e(s, e, t) {
+  if (t < 24)
+    switch (t) {
+      case 20:
+        return { value: !1, offset: e };
+      case 21:
+        return { value: !0, offset: e };
+      case 22:
+        return { value: null, offset: e };
+      case 23:
+        return { value: void 0, offset: e };
+      default:
+        throw new Error(`Unknown simple value: ${t}`);
+    }
+  if (t === 24) return { value: s.getUint8(e++), offset: e };
+  if (t === 25) {
+    const n = Ce(s.getUint16(e, !1));
+    return e += 2, { value: n, offset: e };
+  }
+  if (t === 26) {
+    const n = s.getFloat32(e, !1);
+    return e += 4, { value: n, offset: e };
+  }
+  if (t === 27) {
+    const n = s.getFloat64(e, !1);
+    return e += 8, { value: n, offset: e };
+  }
+  throw new Error(`Unknown simple or float value: ${t}`);
+}
+class Y {
+  constructor(e, t, n, r, o, i, c = !1) {
+    this.transport = e, this.id = t, this.amount = n, this.unit = r, this.mints = o, this.description = i, this.singleUse = c;
+  }
+  toEncodedRequest() {
+    const e = {
+      t: this.transport.map((r) => ({ t: r.type, a: r.target, g: r.tags }))
+    };
+    this.id && (e.i = this.id), this.amount && (e.a = this.amount), this.unit && (e.u = this.unit), this.mints && (e.m = this.mints), this.description && (e.d = this.description), this.singleUse && (e.s = this.singleUse);
+    const t = V(e);
+    return "creqA" + R.from(t).toString("base64");
+  }
+  getTransport(e) {
+    return this.transport.find((t) => t.type === e);
+  }
+  static fromEncodedRequest(e) {
+    if (!e.startsWith("creq"))
+      throw new Error("unsupported pr: invalid prefix");
+    if (e[4] !== "A")
+      throw new Error("unsupported pr version");
+    const n = e.slice(5), r = me(n), o = J(r), i = o.t.map((c) => ({ type: c.t, target: c.a, tags: c.g }));
+    return new Y(
+      i,
+      o.i,
+      o.a,
+      o.u,
+      o.m,
+      o.d,
+      o.s
+    );
+  }
+}
+const ze = "A", Ve = "cashu";
+function P(s, e, t, n) {
+  if (t) {
+    const o = he(t);
+    if (o > s)
+      throw new Error(`Split is greater than total amount: ${o} > ${s}`);
+    if (t.some((i) => !ke(i, e)))
+      throw new Error("Provided amount preferences do not match the amounts of the mint keyset.");
+    s = s - he(t);
+  } else
+    t = [];
+  return we(e, "desc").forEach((o) => {
+    const i = Math.floor(s / o);
+    for (let c = 0; c < i; ++c) t?.push(o);
+    s %= o;
+  }), t.sort((o, i) => o - i);
+}
+function ae(s, e, t, n) {
+  const r = [], o = s.map((h) => h.amount);
+  we(t, "asc").forEach((h) => {
+    const d = o.filter((m) => m === h).length, u = Math.max(n - d, 0);
+    for (let m = 0; m < u && !(r.reduce((l, f) => l + f, 0) + h > e); ++m)
+      r.push(h);
+  });
+  const c = e - r.reduce((h, d) => h + d, 0);
+  return c && P(c, t).forEach((d) => {
+    r.push(d);
+  }), r.sort((h, d) => h - d);
+}
+function we(s, e = "desc") {
+  return e == "desc" ? Object.keys(s).map((t) => parseInt(t)).sort((t, n) => n - t) : Object.keys(s).map((t) => parseInt(t)).sort((t, n) => t - n);
+}
+function ke(s, e) {
+  return s in e;
+}
+function Ge(s) {
+  return be(F(s));
+}
+function be(s) {
+  return BigInt(`0x${s}`);
+}
+function Je(s) {
+  return s.toString(16).padStart(64, "0");
+}
+function ue(s) {
+  return /^[a-f0-9]*$/i.test(s);
+}
+function _e(s) {
+  return Array.isArray(s) ? s.some((e) => !ue(e.id)) : ue(s.id);
+}
+function Ye(s) {
+  const e = { token: [{ mint: s.mint, proofs: s.proofs }] };
+  return s.unit && (e.unit = s.unit), s.memo && (e.memo = s.memo), Ve + ze + Ue(e);
+}
+function St(s, e) {
+  if (_e(s.proofs) || e?.version === 3) {
+    if (e?.version === 4)
+      throw new Error("can not encode to v4 token if proofs contain non-hex keyset id");
+    return Ye(s);
+  }
+  return Xe(s);
+}
+function Xe(s) {
+  if (s.proofs.forEach((c) => {
+    if (c.dleq && c.dleq.r == null)
+      throw new Error("Missing blinding factor in included DLEQ proof");
+  }), _e(s.proofs))
+    throw new Error("can not encode to v4 token if proofs contain non-hex keyset id");
+  const t = Ee(s), n = V(t), r = "cashu", o = "B", i = Te(n);
+  return r + o + i;
+}
+function Ee(s) {
+  const e = {}, t = s.mint;
+  for (let r = 0; r < s.proofs.length; r++) {
+    const o = s.proofs[r];
+    e[o.id] ? e[o.id].push(o) : e[o.id] = [o];
+  }
+  const n = {
+    m: t,
+    u: s.unit || "sat",
+    t: Object.keys(e).map(
+      (r) => ({
+        i: (0,_noble_curves_abstract_utils__WEBPACK_IMPORTED_MODULE_6__/* .hexToBytes */ .aT)(r),
+        p: e[r].map(
+          (o) => ({
+            a: o.amount,
+            s: o.secret,
+            c: (0,_noble_curves_abstract_utils__WEBPACK_IMPORTED_MODULE_6__/* .hexToBytes */ .aT)(o.C),
+            ...o.dleq && {
+              d: {
+                e: (0,_noble_curves_abstract_utils__WEBPACK_IMPORTED_MODULE_6__/* .hexToBytes */ .aT)(o.dleq.e),
+                s: (0,_noble_curves_abstract_utils__WEBPACK_IMPORTED_MODULE_6__/* .hexToBytes */ .aT)(o.dleq.s),
+                r: (0,_noble_curves_abstract_utils__WEBPACK_IMPORTED_MODULE_6__/* .hexToBytes */ .aT)(o.dleq.r ?? "00")
+              }
+            }
+          })
+        )
+      })
+    )
+  };
+  return s.memo && (n.d = s.memo), n;
+}
+function Pe(s) {
+  const e = [];
+  s.t.forEach(
+    (n) => n.p.forEach((r) => {
+      e.push({
+        secret: r.s,
+        C: F(r.c),
+        amount: r.a,
+        id: F(n.i),
+        ...r.d && {
+          dleq: {
+            r: F(r.d.r),
+            s: F(r.d.s),
+            e: F(r.d.e)
+          }
+        }
+      });
+    })
+  );
+  const t = { mint: s.m, proofs: e, unit: s.u || "sat" };
+  return s.d && (t.memo = s.d), t;
+}
+function Ze(s) {
+  return ["web+cashu://", "cashu://", "cashu:", "cashu"].forEach((t) => {
+    s.startsWith(t) && (s = s.slice(t.length));
+  }), et(s);
+}
+function et(s) {
+  const e = s.slice(0, 1), t = s.slice(1);
+  if (e === "A") {
+    const n = Fe(t);
+    if (n.token.length > 1)
+      throw new Error("Multi entry token are not supported");
+    const r = n.token[0], o = {
+      mint: r.mint,
+      proofs: r.proofs,
+      unit: n.unit || "sat"
+    };
+    return n.memo && (o.memo = n.memo), o;
+  } else if (e === "B") {
+    const n = me(t), r = J(n);
+    return Pe(r);
+  }
+  throw new Error("Token version is not supported");
+}
+function At(s) {
+  const e = Object.entries(s).sort((r, o) => +r[0] - +o[0]).map(([, r]) => D(r)).reduce((r, o) => tt(r, o), new Uint8Array()), t = Ie(e);
+  return "00" + Buffer.from(t).toString("hex").slice(0, 14);
+}
+function tt(s, e) {
+  const t = new Uint8Array(s.length + e.length);
+  return t.set(s), t.set(e, s.length), t;
+}
+function v(s) {
+  return typeof s == "object";
+}
+function _(...s) {
+  return s.map((e) => e.replace(/(^\/+|\/+$)/g, "")).join("/");
+}
+function st(s) {
+  return s.replace(/\/$/, "");
+}
+function U(s) {
+  return s.reduce((e, t) => e + t.amount, 0);
+}
+function It(s) {
+  return Y.fromEncodedRequest(s);
+}
+class nt {
+  get value() {
+    return this._value;
+  }
+  set value(e) {
+    this._value = e;
+  }
+  get next() {
+    return this._next;
+  }
+  set next(e) {
+    this._next = e;
+  }
+  constructor(e) {
+    this._value = e, this._next = null;
+  }
+}
+class rt {
+  get first() {
+    return this._first;
+  }
+  set first(e) {
+    this._first = e;
+  }
+  get last() {
+    return this._last;
+  }
+  set last(e) {
+    this._last = e;
+  }
+  get size() {
+    return this._size;
+  }
+  set size(e) {
+    this._size = e;
+  }
+  constructor() {
+    this._first = null, this._last = null, this._size = 0;
+  }
+  enqueue(e) {
+    const t = new nt(e);
+    return this._size === 0 || !this._last ? (this._first = t, this._last = t) : (this._last.next = t, this._last = t), this._size++, !0;
+  }
+  dequeue() {
+    if (this._size === 0 || !this._first) return null;
+    const e = this._first;
+    return this._first = e.next, e.next = null, this._size--, e.value;
+  }
+}
+function L(s) {
+  return s.map((e) => {
+    const t = { ...e };
+    return delete t.dleq, delete t.dleqValid, t;
+  });
+}
+function ot(s, e) {
+  if (s.dleq == null)
+    return !1;
+  const t = {
+    e: D(s.dleq.e),
+    s: D(s.dleq.s),
+    r: be(s.dleq.r ?? "00")
+  };
+  if (!ke(s.amount, e.keys))
+    throw new Error(`undefined key for amount ${s.amount}`);
+  const n = e.keys[s.amount];
+  return !!pe(
+    new TextEncoder().encode(s.secret),
+    t,
+    x(s.C),
+    x(n)
+  );
+}
+function it(...s) {
+  const e = s.reduce((r, o) => r + o.length, 0), t = new Uint8Array(e);
+  let n = 0;
+  for (let r = 0; r < s.length; r++)
+    t.set(s[r], n), n = n + s[r].length;
+  return t;
+}
+function qt(s) {
+  const e = new TextEncoder(), t = Ee(s), n = V(t), r = e.encode("craw"), o = e.encode("B");
+  return it(r, o, n);
+}
+function vt(s) {
+  const e = new TextDecoder(), t = e.decode(s.slice(0, 4)), n = e.decode(new Uint8Array([s[4]]));
+  if (t !== "craw" || n !== "B")
+    throw new Error("not a valid binary token");
+  const r = s.slice(5), o = J(r);
+  return Pe(o);
+}
+function he(s) {
+  return s.reduce((e, t) => e + t, 0);
+}
+let X;
+typeof WebSocket < "u" && (X = WebSocket);
+function Dt(s) {
+  X = s;
+}
+function ct() {
+  return X;
+}
+class M {
+  constructor() {
+    this.connectionMap = /* @__PURE__ */ new Map();
+  }
+  static getInstance() {
+    return M.instace || (M.instace = new M()), M.instace;
+  }
+  getConnection(e) {
+    if (this.connectionMap.has(e))
+      return this.connectionMap.get(e);
+    const t = new at(e);
+    return this.connectionMap.set(e, t), t;
+  }
+}
+class at {
+  constructor(e) {
+    this.subListeners = {}, this.rpcListeners = {}, this.rpcId = 0, this._WS = ct(), this.url = new URL(e), this.messageQueue = new rt();
+  }
+  connect() {
+    return this.connectionPromise || (this.connectionPromise = new Promise((e, t) => {
+      try {
+        this.ws = new this._WS(this.url);
+      } catch (n) {
+        t(n);
+        return;
+      }
+      this.ws.onopen = () => {
+        e();
+      }, this.ws.onerror = () => {
+        t(new Error("Failed to open WebSocket"));
+      }, this.ws.onmessage = (n) => {
+        this.messageQueue.enqueue(n.data), this.handlingInterval || (this.handlingInterval = setInterval(
+          this.handleNextMesage.bind(this),
+          0
+        ));
+      }, this.ws.onclose = () => {
+        this.connectionPromise = void 0;
+      };
+    })), this.connectionPromise;
+  }
+  sendRequest(e, t) {
+    if (this.ws?.readyState !== 1)
+      throw new Error("Socket not open...");
+    const n = this.rpcId;
+    this.rpcId++;
+    const r = JSON.stringify({ jsonrpc: "2.0", method: e, params: t, id: n });
+    this.ws?.send(r);
+  }
+  closeSubscription(e) {
+    this.ws?.send(JSON.stringify(["CLOSE", e]));
+  }
+  addSubListener(e, t) {
+    (this.subListeners[e] = this.subListeners[e] || []).push(t);
+  }
+  //TODO: Move to RPCManagerClass
+  addRpcListener(e, t, n) {
+    this.rpcListeners[n] = { callback: e, errorCallback: t };
+  }
+  //TODO: Move to RPCManagerClass
+  removeRpcListener(e) {
+    delete this.rpcListeners[e];
+  }
+  removeListener(e, t) {
+    if (this.subListeners[e].length === 1) {
+      delete this.subListeners[e];
+      return;
+    }
+    this.subListeners[e] = this.subListeners[e].filter((n) => n !== t);
+  }
+  async ensureConnection() {
+    this.ws?.readyState !== 1 && await this.connect();
+  }
+  handleNextMesage() {
+    if (this.messageQueue.size === 0) {
+      clearInterval(this.handlingInterval), this.handlingInterval = void 0;
+      return;
+    }
+    const e = this.messageQueue.dequeue();
+    let t;
+    try {
+      if (t = JSON.parse(e), "result" in t && t.id != null)
+        this.rpcListeners[t.id] && (this.rpcListeners[t.id].callback(), this.removeRpcListener(t.id));
+      else if ("error" in t && t.id != null)
+        this.rpcListeners[t.id] && (this.rpcListeners[t.id].errorCallback(t.error), this.removeRpcListener(t.id));
+      else if ("method" in t && !("id" in t)) {
+        const n = t.params.subId;
+        if (!n)
+          return;
+        if (this.subListeners[n]?.length > 0) {
+          const r = t;
+          this.subListeners[n].forEach((o) => o(r.params.payload));
+        }
+      }
+    } catch (n) {
+      console.error(n);
+      return;
+    }
+  }
+  createSubscription(e, t, n) {
+    if (this.ws?.readyState !== 1)
+      return n(new Error("Socket is not open"));
+    const r = (Math.random() + 1).toString(36).substring(7);
+    return this.addRpcListener(
+      () => {
+        this.addSubListener(r, t);
+      },
+      (o) => {
+        n(new Error(o.message));
+      },
+      this.rpcId
+    ), this.sendRequest("subscribe", { ...e, subId: r }), this.rpcId++, r;
+  }
+  cancelSubscription(e, t) {
+    this.removeListener(e, t), this.rpcId++, this.sendRequest("unsubscribe", { subId: e });
+  }
+  get activeSubscriptions() {
+    return Object.keys(this.subListeners);
+  }
+  close() {
+    this.ws && this.ws?.close();
+  }
+}
+var ut = /* @__PURE__ */ ((s) => (s.UNSPENT = "UNSPENT", s.PENDING = "PENDING", s.SPENT = "SPENT", s))(ut || {}), N = /* @__PURE__ */ ((s) => (s.UNPAID = "UNPAID", s.PENDING = "PENDING", s.PAID = "PAID", s))(N || {}), W = /* @__PURE__ */ ((s) => (s.UNPAID = "UNPAID", s.PAID = "PAID", s.ISSUED = "ISSUED", s))(W || {}), ht = /* @__PURE__ */ ((s) => (s.POST = "post", s.NOSTR = "nostr", s))(ht || {});
+class de extends Error {
+  constructor(e, t) {
+    super(e), this.status = t;
+  }
+}
+let Se = {};
+function Tt(s) {
+  Se = s;
+}
+async function dt({
+  endpoint: s,
+  requestBody: e,
+  headers: t,
+  ...n
+}) {
+  const r = e ? JSON.stringify(e) : void 0, o = {
+    Accept: "application/json, text/plain, */*",
+    ...r ? { "Content-Type": "application/json" } : void 0,
+    ...t
+  }, i = await fetch(s, { body: r, headers: o, ...n });
+  if (!i.ok) {
+    const { error: c, detail: a } = await i.json().catch(() => ({ error: "bad response" }));
+    throw new de(c || a || "bad response", i.status);
+  }
+  try {
+    return await i.json();
+  } catch (c) {
+    throw console.error("Failed to parse HTTP response", c), new de("bad response", i.status);
+  }
+}
+async function I(s) {
+  return await dt({ ...s, ...Se });
+}
+function H(s) {
+  return s.state || (console.warn(
+    "Field 'state' not found in MeltQuoteResponse. Update NUT-05 of mint: https://github.com/cashubtc/nuts/pull/136)"
+  ), typeof s.paid == "boolean" && (s.state = s.paid ? N.PAID : N.UNPAID)), s;
+}
+function le(s) {
+  return s.state || (console.warn(
+    "Field 'state' not found in MintQuoteResponse. Update NUT-04 of mint: https://github.com/cashubtc/nuts/pull/141)"
+  ), typeof s.paid == "boolean" && (s.state = s.paid ? W.PAID : W.UNPAID)), s;
+}
+function lt(s) {
+  return Array.isArray(s?.contact) && s?.contact.length > 0 && (s.contact = s.contact.map((e) => Array.isArray(e) && e.length === 2 && typeof e[0] == "string" && typeof e[1] == "string" ? (console.warn(
+    "Mint returned deprecated 'contact' field: Update NUT-06: https://github.com/cashubtc/nuts/pull/117"
+  ), { method: e[0], info: e[1] }) : e)), s;
+}
+class E {
+  /**
+   * @param _mintUrl requires mint URL to create this object
+   * @param _customRequest if passed, use custom request implementation for network communication with the mint
+   */
+  constructor(e, t) {
+    this._mintUrl = e, this._customRequest = t, this._mintUrl = st(e), this._customRequest = t;
+  }
+  get mintUrl() {
+    return this._mintUrl;
+  }
+  /**
+   * fetches mints info at the /info endpoint
+   * @param mintUrl
+   * @param customRequest
+   */
+  static async getInfo(e, t) {
+    const r = await (t || I)({
+      endpoint: _(e, "/v1/info")
+    });
+    return lt(r);
+  }
+  /**
+   * fetches mints info at the /info endpoint
+   */
+  async getInfo() {
+    return E.getInfo(this._mintUrl, this._customRequest);
+  }
+  /**
+   * Performs a swap operation with ecash inputs and outputs.
+   * @param mintUrl
+   * @param swapPayload payload containing inputs and outputs
+   * @param customRequest
+   * @returns signed outputs
+   */
+  static async swap(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/swap"),
+      method: "POST",
+      requestBody: t
+    });
+    if (!v(o) || !Array.isArray(o?.signatures))
+      throw new Error(o.detail ?? "bad response");
+    return o;
+  }
+  /**
+   * Performs a swap operation with ecash inputs and outputs.
+   * @param swapPayload payload containing inputs and outputs
+   * @returns signed outputs
+   */
+  async swap(e) {
+    return E.swap(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Requests a new mint quote from the mint.
+   * @param mintUrl
+   * @param mintQuotePayload Payload for creating a new mint quote
+   * @param customRequest
+   * @returns the mint will create and return a new mint quote containing a payment request for the specified amount and unit
+   */
+  static async createMintQuote(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/mint/quote/bolt11"),
+      method: "POST",
+      requestBody: t
+    });
+    return le(o);
+  }
+  /**
+   * Requests a new mint quote from the mint.
+   * @param mintQuotePayload Payload for creating a new mint quote
+   * @returns the mint will create and return a new mint quote containing a payment request for the specified amount and unit
+   */
+  async createMintQuote(e) {
+    return E.createMintQuote(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Gets an existing mint quote from the mint.
+   * @param mintUrl
+   * @param quote Quote ID
+   * @param customRequest
+   * @returns the mint will create and return a Lightning invoice for the specified amount
+   */
+  static async checkMintQuote(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/mint/quote/bolt11", t),
+      method: "GET"
+    });
+    return le(o);
+  }
+  /**
+   * Gets an existing mint quote from the mint.
+   * @param quote Quote ID
+   * @returns the mint will create and return a Lightning invoice for the specified amount
+   */
+  async checkMintQuote(e) {
+    return E.checkMintQuote(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Mints new tokens by requesting blind signatures on the provided outputs.
+   * @param mintUrl
+   * @param mintPayload Payload containing the outputs to get blind signatures on
+   * @param customRequest
+   * @returns serialized blinded signatures
+   */
+  static async mint(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/mint/bolt11"),
+      method: "POST",
+      requestBody: t
+    });
+    if (!v(o) || !Array.isArray(o?.signatures))
+      throw new Error("bad response");
+    return o;
+  }
+  /**
+   * Mints new tokens by requesting blind signatures on the provided outputs.
+   * @param mintPayload Payload containing the outputs to get blind signatures on
+   * @returns serialized blinded signatures
+   */
+  async mint(e) {
+    return E.mint(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Requests a new melt quote from the mint.
+   * @param mintUrl
+   * @param MeltQuotePayload
+   * @returns
+   */
+  static async createMeltQuote(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/melt/quote/bolt11"),
+      method: "POST",
+      requestBody: t
+    }), i = H(o);
+    if (!v(i) || typeof i?.amount != "number" || typeof i?.fee_reserve != "number" || typeof i?.quote != "string")
+      throw new Error("bad response");
+    return i;
+  }
+  /**
+   * Requests a new melt quote from the mint.
+   * @param MeltQuotePayload
+   * @returns
+   */
+  async createMeltQuote(e) {
+    return E.createMeltQuote(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Gets an existing melt quote.
+   * @param mintUrl
+   * @param quote Quote ID
+   * @returns
+   */
+  static async checkMeltQuote(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/melt/quote/bolt11", t),
+      method: "GET"
+    }), i = H(o);
+    if (!v(i) || typeof i?.amount != "number" || typeof i?.fee_reserve != "number" || typeof i?.quote != "string" || typeof i?.state != "string" || !Object.values(N).includes(i.state))
+      throw new Error("bad response");
+    return i;
+  }
+  /**
+   * Gets an existing melt quote.
+   * @param quote Quote ID
+   * @returns
+   */
+  async checkMeltQuote(e) {
+    return E.checkMeltQuote(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Requests the mint to pay for a Bolt11 payment request by providing ecash as inputs to be spent. The inputs contain the amount and the fee_reserves for a Lightning payment. The payload can also contain blank outputs in order to receive back overpaid Lightning fees.
+   * @param mintUrl
+   * @param meltPayload
+   * @param customRequest
+   * @returns
+   */
+  static async melt(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/melt/bolt11"),
+      method: "POST",
+      requestBody: t
+    }), i = H(o);
+    if (!v(i) || typeof i?.state != "string" || !Object.values(N).includes(i.state))
+      throw new Error("bad response");
+    return i;
+  }
+  /**
+   * Ask mint to perform a melt operation. This pays a lightning invoice and destroys tokens matching its amount + fees
+   * @param meltPayload
+   * @returns
+   */
+  async melt(e) {
+    return E.melt(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Checks if specific proofs have already been redeemed
+   * @param mintUrl
+   * @param checkPayload
+   * @param customRequest
+   * @returns redeemed and unredeemed ordered list of booleans
+   */
+  static async check(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/checkstate"),
+      method: "POST",
+      requestBody: t
+    });
+    if (!v(o) || !Array.isArray(o?.states))
+      throw new Error("bad response");
+    return o;
+  }
+  /**
+   * Get the mints public keys
+   * @param mintUrl
+   * @param keysetId optional param to get the keys for a specific keyset. If not specified, the keys from all active keysets are fetched
+   * @param customRequest
+   * @returns
+   */
+  static async getKeys(e, t, n) {
+    t && (t = t.replace(/\//g, "_").replace(/\+/g, "-"));
+    const o = await (n || I)({
+      endpoint: t ? _(e, "/v1/keys", t) : _(e, "/v1/keys")
+    });
+    if (!v(o) || !Array.isArray(o.keysets))
+      throw new Error("bad response");
+    return o;
+  }
+  /**
+   * Get the mints public keys
+   * @param keysetId optional param to get the keys for a specific keyset. If not specified, the keys from all active keysets are fetched
+   * @returns the mints public keys
+   */
+  async getKeys(e, t) {
+    return await E.getKeys(
+      t || this._mintUrl,
+      e,
+      this._customRequest
+    );
+  }
+  /**
+   * Get the mints keysets in no specific order
+   * @param mintUrl
+   * @param customRequest
+   * @returns all the mints past and current keysets.
+   */
+  static async getKeySets(e, t) {
+    return (t || I)({ endpoint: _(e, "/v1/keysets") });
+  }
+  /**
+   * Get the mints keysets in no specific order
+   * @returns all the mints past and current keysets.
+   */
+  async getKeySets() {
+    return E.getKeySets(this._mintUrl, this._customRequest);
+  }
+  /**
+   * Checks if specific proofs have already been redeemed
+   * @param checkPayload
+   * @returns redeemed and unredeemed ordered list of booleans
+   */
+  async check(e) {
+    return E.check(this._mintUrl, e, this._customRequest);
+  }
+  static async restore(e, t, n) {
+    const o = await (n || I)({
+      endpoint: _(e, "/v1/restore"),
+      method: "POST",
+      requestBody: t
+    });
+    if (!v(o) || !Array.isArray(o?.outputs) || !Array.isArray(o?.promises))
+      throw new Error("bad response");
+    return o;
+  }
+  async restore(e) {
+    return E.restore(this._mintUrl, e, this._customRequest);
+  }
+  /**
+   * Tries to establish a websocket connection with the websocket mint url according to NUT-17
+   */
+  async connectWebSocket() {
+    if (this.ws)
+      await this.ws.ensureConnection();
+    else {
+      const e = new URL(this._mintUrl), t = "v1/ws";
+      e.pathname && (e.pathname.endsWith("/") ? e.pathname += t : e.pathname += "/" + t), this.ws = M.getInstance().getConnection(
+        `${e.protocol === "https:" ? "wss" : "ws"}://${e.host}${e.pathname}`
+      );
+      try {
+        await this.ws.connect();
+      } catch (n) {
+        throw console.log(n), new Error("Failed to connect to WebSocket...");
+      }
+    }
+  }
+  /**
+   * Closes a websocket connection
+   */
+  disconnectWebSocket() {
+    this.ws && this.ws.close();
+  }
+  get webSocketConnection() {
+    return this.ws;
+  }
+}
+class fe {
+  constructor(e) {
+    this._mintInfo = e;
+  }
+  isSupported(e) {
+    switch (e) {
+      case 4:
+      case 5:
+        return this.checkMintMelt(e);
+      case 7:
+      case 8:
+      case 9:
+      case 10:
+      case 11:
+      case 12:
+      case 14:
+        return this.checkGenericNut(e);
+      case 17:
+        return this.checkNut17();
+      case 15:
+        return this.checkNut15();
+      default:
+        throw new Error("nut is not supported by cashu-ts");
+    }
+  }
+  checkGenericNut(e) {
+    return this._mintInfo.nuts[e]?.supported ? { supported: !0 } : { supported: !1 };
+  }
+  checkMintMelt(e) {
+    const t = this._mintInfo.nuts[e];
+    return t && t.methods.length > 0 && !t.disabled ? { disabled: !1, params: t.methods } : { disabled: !0, params: t.methods };
+  }
+  checkNut17() {
+    return this._mintInfo.nuts[17] && this._mintInfo.nuts[17].supported.length > 0 ? { supported: !0, params: this._mintInfo.nuts[17].supported } : { supported: !1 };
+  }
+  checkNut15() {
+    return this._mintInfo.nuts[15] && this._mintInfo.nuts[15].methods.length > 0 ? { supported: !0, params: this._mintInfo.nuts[15].methods } : { supported: !1 };
+  }
+  get contact() {
+    return this._mintInfo.contact;
+  }
+  get description() {
+    return this._mintInfo.description;
+  }
+  get description_long() {
+    return this._mintInfo.description_long;
+  }
+  get name() {
+    return this._mintInfo.name;
+  }
+  get pubkey() {
+    return this._mintInfo.pubkey;
+  }
+  get nuts() {
+    return this._mintInfo.nuts;
+  }
+  get version() {
+    return this._mintInfo.version;
+  }
+  get motd() {
+    return this._mintInfo.motd;
+  }
+}
+class C {
+  constructor(e, t, n) {
+    this.amount = e, this.B_ = t, this.id = n;
+  }
+  getSerializedBlindedMessage() {
+    return { amount: this.amount, B_: this.B_.toHex(!0), id: this.id };
+  }
+}
+function $(s) {
+  return typeof s == "function";
+}
+class q {
+  constructor(e, t, n) {
+    this.secret = n, this.blindingFactor = t, this.blindedMessage = e;
+  }
+  toProof(e, t) {
+    let n;
+    e.dleq && (n = {
+      s: ie(e.dleq.s),
+      e: ie(e.dleq.e),
+      r: this.blindingFactor
+    });
+    const r = {
+      id: e.id,
+      amount: e.amount,
+      C_: x(e.C_),
+      dleq: n
+    }, o = x(t.keys[e.amount]), i = qe(r, this.blindingFactor, this.secret, o);
+    return {
+      ...z(i),
+      ...n && {
+        dleqValid: pe(this.secret, n, i.C, o)
+      },
+      ...n && {
+        dleq: {
+          s: O(n.s),
+          e: O(n.e),
+          r: Je(n.r ?? BigInt(0))
+        }
+      }
+    };
+  }
+  static createP2PKData(e, t, n, r) {
+    return P(t, n.keys, r).map((i) => this.createSingleP2PKData(e, i, n.id));
+  }
+  static createSingleP2PKData(e, t, n) {
+    const r = [
+      "P2PK",
+      {
+        nonce: O(ce(32)),
+        data: e.pubkey,
+        tags: []
+      }
+    ];
+    e.locktime && r[1].tags.push(["locktime", e.locktime]), e.refundKeys && r[1].tags.push(["refund", e.refundKeys]);
+    const o = JSON.stringify(r), i = new TextEncoder().encode(o), { r: c, B_: a } = j(i);
+    return new q(
+      new C(t, a, n).getSerializedBlindedMessage(),
+      c,
+      i
+    );
+  }
+  static createRandomData(e, t, n) {
+    return P(e, t.keys, n).map((o) => this.createSingleRandomData(o, t.id));
+  }
+  static createSingleRandomData(e, t) {
+    const n = O(ce(32)), r = new TextEncoder().encode(n), { r: o, B_: i } = j(r);
+    return new q(
+      new C(e, i, t).getSerializedBlindedMessage(),
+      o,
+      r
+    );
+  }
+  static createDeterministicData(e, t, n, r, o) {
+    return P(e, r.keys, o).map(
+      (c, a) => this.createSingleDeterministicData(c, t, n + a, r.id)
+    );
+  }
+  static createSingleDeterministicData(e, t, n, r) {
+    const o = ve(t, r, n), i = O(o), c = new TextEncoder().encode(i), a = Ge(De(t, r, n)), { r: h, B_: d } = j(c, a);
+    return new q(
+      new C(e, d, r).getSerializedBlindedMessage(),
+      h,
+      c
+    );
+  }
+}
+const ft = 3, pt = "sat";
+class Ut {
+  /**
+   * @param mint Cashu mint instance is used to make api calls
+   * @param options.unit optionally set unit (default is 'sat')
+   * @param options.keys public keys from the mint (will be fetched from mint if not provided)
+   * @param options.keysets keysets from the mint (will be fetched from mint if not provided)
+   * @param options.mintInfo mint info from the mint (will be fetched from mint if not provided)
+   * @param options.denominationTarget target number proofs per denomination (default: see @constant DEFAULT_DENOMINATION_TARGET)
+   * @param options.bip39seed BIP39 seed for deterministic secrets.
+   * @param options.keepFactory A function that will be used by all parts of the library that produce proofs to be kept (change, etc.).
+   * This can lead to poor performance, in which case the seed should be directly provided
+   */
+  constructor(e, t) {
+    this._keys = /* @__PURE__ */ new Map(), this._keysets = [], this._seed = void 0, this._unit = pt, this._mintInfo = void 0, this._denominationTarget = ft, this.mint = e;
+    let n = [];
+    if (t?.keys && !Array.isArray(t.keys) ? n = [t.keys] : t?.keys && Array.isArray(t?.keys) && (n = t?.keys), n && n.forEach((r) => this._keys.set(r.id, r)), t?.unit && (this._unit = t?.unit), t?.keysets && (this._keysets = t.keysets), t?.mintInfo && (this._mintInfo = new fe(t.mintInfo)), t?.denominationTarget && (this._denominationTarget = t.denominationTarget), t?.bip39seed) {
+      if (t.bip39seed instanceof Uint8Array) {
+        this._seed = t.bip39seed;
+        return;
+      }
+      throw new Error("bip39seed must be a valid UInt8Array");
+    }
+    t?.keepFactory && (this._keepFactory = t.keepFactory);
+  }
+  get unit() {
+    return this._unit;
+  }
+  get keys() {
+    return this._keys;
+  }
+  get keysetId() {
+    if (!this._keysetId)
+      throw new Error("No keysetId set");
+    return this._keysetId;
+  }
+  set keysetId(e) {
+    this._keysetId = e;
+  }
+  get keysets() {
+    return this._keysets;
+  }
+  get mintInfo() {
+    if (!this._mintInfo)
+      throw new Error("Mint info not loaded");
+    return this._mintInfo;
+  }
+  /**
+   * Get information about the mint
+   * @returns mint info
+   */
+  async getMintInfo() {
+    const e = await this.mint.getInfo();
+    return this._mintInfo = new fe(e), this._mintInfo;
+  }
+  /**
+   * Load mint information, keysets and keys. This function can be called if no keysets are passed in the constructor
+   */
+  async loadMint() {
+    await this.getMintInfo(), await this.getKeySets(), await this.getKeys();
+  }
+  /**
+   * Choose a keyset to activate based on the lowest input fee
+   *
+   * Note: this function will filter out deprecated base64 keysets
+   *
+   * @param keysets keysets to choose from
+   * @returns active keyset
+   */
+  getActiveKeyset(e) {
+    let t = e.filter((r) => r.active);
+    t = t.filter((r) => r.id.startsWith("00"));
+    const n = t.sort(
+      (r, o) => (r.input_fee_ppk ?? 0) - (o.input_fee_ppk ?? 0)
+    )[0];
+    if (!n)
+      throw new Error("No active keyset found");
+    return n;
+  }
+  /**
+   * Get keysets from the mint with the unit of the wallet
+   * @returns keysets with wallet's unit
+   */
+  async getKeySets() {
+    const t = (await this.mint.getKeySets()).keysets.filter((n) => n.unit === this._unit);
+    return this._keysets = t, this._keysets;
+  }
+  /**
+   * Get all active keys from the mint and set the keyset with the lowest fees as the active wallet keyset.
+   * @returns keyset
+   */
+  async getAllKeys() {
+    const e = await this.mint.getKeys();
+    return this._keys = new Map(e.keysets.map((t) => [t.id, t])), this.keysetId = this.getActiveKeyset(this._keysets).id, e.keysets;
+  }
+  /**
+   * Get public keys from the mint. If keys were already fetched, it will return those.
+   *
+   * If `keysetId` is set, it will fetch and return that specific keyset.
+   * Otherwise, we select an active keyset with the unit of the wallet.
+   *
+   * @param keysetId optional keysetId to get keys for
+   * @param forceRefresh? if set to true, it will force refresh the keyset from the mint
+   * @returns keyset
+   */
+  async getKeys(e, t) {
+    if ((!(this._keysets.length > 0) || t) && await this.getKeySets(), e || (e = this.getActiveKeyset(this._keysets).id), !this._keysets.find((n) => n.id === e) && (await this.getKeySets(), !this._keysets.find((n) => n.id === e)))
+      throw new Error(`could not initialize keys. No keyset with id '${e}' found`);
+    if (!this._keys.get(e)) {
+      const n = await this.mint.getKeys(e);
+      this._keys.set(e, n.keysets[0]);
+    }
+    return this.keysetId = e, this._keys.get(e);
+  }
+  /**
+   * Receive an encoded or raw Cashu token (only supports single tokens. It will only process the first token in the token array)
+   * @param {(string|Token)} token - Cashu token, either as string or decoded
+   * @param {ReceiveOptions} [options] - Optional configuration for token processing
+   * @returns New token with newly created proofs, token entries that had errors
+   */
+  async receive(e, t) {
+    const { requireDleq: n, keysetId: r, outputAmounts: o, counter: i, pubkey: c, privkey: a, outputData: h, p2pk: d } = t || {};
+    typeof e == "string" && (e = Ze(e));
+    const u = await this.getKeys(r);
+    if (n && e.proofs.some((w) => !ot(w, u)))
+      throw new Error("Token contains proofs with invalid DLEQ");
+    const m = U(e.proofs) - this.getFeesForProofs(e.proofs);
+    let l;
+    h ? l = { send: h } : this._keepFactory && (l = { send: this._keepFactory });
+    const f = this.createSwapPayload(
+      m,
+      e.proofs,
+      u,
+      o,
+      i,
+      c,
+      a,
+      l,
+      d
+    ), { signatures: y } = await this.mint.swap(f.payload), g = f.outputData.map((w, p) => w.toProof(y[p], u)), S = [];
+    return f.sortedIndices.forEach((w, p) => {
+      S[w] = g[p];
+    }), S;
+  }
+  /**
+   * Send proofs of a given amount, by providing at least the required amount of proofs
+   * @param amount amount to send
+   * @param proofs array of proofs (accumulated amount of proofs must be >= than amount)
+   * @param {SendOptions} [options] - Optional parameters for configuring the send operation
+   * @returns {SendResponse}
+   */
+  async send(e, t, n) {
+    const {
+      proofsWeHave: r,
+      offline: o,
+      includeFees: i,
+      includeDleq: c,
+      keysetId: a,
+      outputAmounts: h,
+      pubkey: d,
+      privkey: u,
+      outputData: m
+    } = n || {};
+    if (c && (t = t.filter((g) => g.dleq != null)), U(t) < e)
+      throw new Error("Not enough funds available to send");
+    const { keep: l, send: f } = this.selectProofsToSend(
+      t,
+      e,
+      n?.includeFees
+    ), y = i ? this.getFeesForProofs(f) : 0;
+    if (!o && (U(f) != e + y || // if the exact amount cannot be selected
+    h || d || u || a || m)) {
+      const { keep: g, send: S } = this.selectProofsToSend(
+        t,
+        e,
+        !0
+      );
+      r?.push(...g);
+      const w = await this.swap(e, S, n);
+      let { keep: p, send: b } = w;
+      const T = w.serialized;
+      return p = g.concat(p), c || (b = L(b)), { keep: p, send: b, serialized: T };
+    }
+    if (U(f) < e + y)
+      throw new Error("Not enough funds available to send");
+    return c ? { keep: l, send: f } : { keep: l, send: L(f) };
+  }
+  selectProofsToSend(e, t, n) {
+    const r = e.sort((l, f) => l.amount - f.amount), o = r.filter((l) => l.amount <= t).sort((l, f) => f.amount - l.amount), c = r.filter((l) => l.amount > t).sort((l, f) => l.amount - f.amount)[0];
+    if (!o.length && c)
+      return {
+        keep: e.filter((l) => l.secret !== c.secret),
+        send: [c]
+      };
+    if (!o.length && !c)
+      return { keep: e, send: [] };
+    let a = t, h = [o[0]];
+    const d = [], u = n ? this.getFeesForProofs(h) : 0;
+    if (a -= h[0].amount - u / 1e3, a > 0) {
+      const { keep: l, send: f } = this.selectProofsToSend(
+        o.slice(1),
+        a,
+        n
+      );
+      h.push(...f), d.push(...l);
+    }
+    const m = n ? this.getFeesForProofs(h) : 0;
+    return U(h) < t + m && c && (h = [c]), {
+      keep: e.filter((l) => !h.includes(l)),
+      send: h
+    };
+  }
+  /**
+   * calculates the fees based on inputs (proofs)
+   * @param proofs input proofs to calculate fees for
+   * @returns fee amount
+   */
+  getFeesForProofs(e) {
+    if (!this._keysets.length)
+      throw new Error("Could not calculate fees. No keysets found");
+    return new Set(e.map((r) => r.id)).forEach((r) => {
+      if (!this._keysets.find((o) => o.id === r))
+        throw new Error(`Could not calculate fees. No keyset found with id: ${r}`);
+    }), Math.floor(
+      Math.max(
+        (e.reduce(
+          (r, o) => r + (this._keysets.find((i) => i.id === o.id)?.input_fee_ppk || 0),
+          0
+        ) + 999) / 1e3,
+        0
+      )
+    );
+  }
+  /**
+   * calculates the fees based on inputs for a given keyset
+   * @param nInputs number of inputs
+   * @param keysetId keysetId used to lookup `input_fee_ppk`
+   * @returns fee amount
+   */
+  getFeesForKeyset(e, t) {
+    return Math.floor(
+      Math.max(
+        (e * (this._keysets.find((r) => r.id === t)?.input_fee_ppk || 0) + 999) / 1e3,
+        0
+      )
+    );
+  }
+  /**
+   * Splits and creates sendable tokens
+   * if no amount is specified, the amount is implied by the cumulative amount of all proofs
+   * if both amount and preference are set, but the preference cannot fulfill the amount, then we use the default split
+   *  @param {SwapOptions} [options] - Optional parameters for configuring the swap operation
+   * @returns promise of the change- and send-proofs
+   */
+  async swap(e, t, n) {
+    let { outputAmounts: r } = n || {};
+    const { includeFees: o, keysetId: i, counter: c, pubkey: a, privkey: h, proofsWeHave: d, outputData: u, p2pk: m } = n || {}, l = await this.getKeys(i), f = t;
+    let y = e;
+    const g = U(t);
+    let S = g - y - this.getFeesForProofs(f), w = r?.sendAmounts || P(y, l.keys);
+    if (o) {
+      let k = this.getFeesForKeyset(w.length, l.id), A = P(k, l.keys);
+      for (; this.getFeesForKeyset(w.concat(A).length, l.id) > k; )
+        k++, A = P(k, l.keys);
+      w = w.concat(A), y += k, S -= k;
+    }
+    let p;
+    if (!r?.keepAmounts && d)
+      p = ae(
+        d,
+        S,
+        l.keys,
+        this._denominationTarget
+      );
+    else if (r) {
+      if (r.keepAmounts?.reduce((k, A) => k + A, 0) != S)
+        throw new Error("Keep amounts do not match amount to keep");
+      p = r.keepAmounts;
+    }
+    if (y + this.getFeesForProofs(f) > g)
+      throw console.error(
+        `Not enough funds available (${g}) for swap amountToSend: ${y} + fee: ${this.getFeesForProofs(
+          f
+        )} | length: ${f.length}`
+      ), new Error("Not enough funds available for swap");
+    if (y + this.getFeesForProofs(f) + S != g)
+      throw new Error("Amounts do not match for swap");
+    r = {
+      keepAmounts: p,
+      sendAmounts: w
+    };
+    const b = u?.keep || this._keepFactory, T = u?.send, B = this.createSwapPayload(
+      y,
+      f,
+      l,
+      r,
+      c,
+      a,
+      h,
+      { keep: b, send: T },
+      m
+    ), { signatures: Ae } = await this.mint.swap(B.payload), Z = B.outputData.map((k, A) => k.toProof(Ae[A], l)), ee = [], te = [], se = Array(B.keepVector.length), ne = Array(Z.length);
+    return B.sortedIndices.forEach((k, A) => {
+      se[k] = B.keepVector[A], ne[k] = Z[A];
+    }), ne.forEach((k, A) => {
+      se[A] ? ee.push(k) : te.push(k);
+    }), {
+      keep: ee,
+      send: te
+    };
+  }
+  /**
+   * Regenerates
+   * @param start set starting point for count (first cycle for each keyset should usually be 0)
+   * @param count set number of blinded messages that should be generated
+   * @param options.keysetId set a custom keysetId to restore from. keysetIds can be loaded with `CashuMint.getKeySets()`
+   */
+  async restore(e, t, n) {
+    const { keysetId: r } = n || {}, o = await this.getKeys(r);
+    if (!this._seed)
+      throw new Error("CashuWallet must be initialized with a seed to use restore");
+    const i = Array(t).fill(0), c = q.createDeterministicData(
+      i.length,
+      this._seed,
+      e,
+      o,
+      i
+    ), { outputs: a, promises: h } = await this.mint.restore({
+      outputs: c.map((u) => u.blindedMessage)
+    }), d = [];
+    for (let u = 0; u < a.length; u++) {
+      const m = c.find((l) => l.blindedMessage.B_ === a[u].B_);
+      m && (d[u] = {
+        signature: h[u],
+        data: m
+      });
+    }
+    return d.forEach((u) => u.data.blindedMessage.amount = u.signature.amount), {
+      proofs: d.map((u) => u.data.toProof(u.signature, o))
+    };
+  }
+  /**
+   * Requests a mint quote form the mint. Response returns a Lightning payment request for the requested given amount and unit.
+   * @param amount Amount requesting for mint.
+   * @param description optional description for the mint quote
+   * @returns the mint will return a mint quote with a Lightning invoice for minting tokens of the specified amount and unit
+   */
+  async createMintQuote(e, t) {
+    const n = {
+      unit: this._unit,
+      amount: e,
+      description: t
+    };
+    return await this.mint.createMintQuote(n);
+  }
+  /**
+   * Gets an existing mint quote from the mint.
+   * @param quote Quote ID
+   * @returns the mint will create and return a Lightning invoice for the specified amount
+   */
+  async checkMintQuote(e) {
+    return await this.mint.checkMintQuote(e);
+  }
+  /**
+   * Mint proofs for a given mint quote
+   * @param amount amount to request
+   * @param quote ID of mint quote
+   * @param {MintProofOptions} [options] - Optional parameters for configuring the Mint Proof operation
+   * @returns proofs
+   */
+  async mintProofs(e, t, n) {
+    let { outputAmounts: r } = n || {};
+    const { counter: o, pubkey: i, p2pk: c, keysetId: a, proofsWeHave: h, outputData: d } = n || {}, u = await this.getKeys(a);
+    !r && h && (r = {
+      keepAmounts: ae(h, e, u.keys, this._denominationTarget),
+      sendAmounts: []
+    });
+    let m = [];
+    if (d)
+      if ($(d)) {
+        const y = P(e, u.keys, r?.keepAmounts);
+        for (let g = 0; g < y.length; g++)
+          m.push(d(y[g], u));
+      } else
+        m = d;
+    else if (this._keepFactory) {
+      const y = P(e, u.keys, r?.keepAmounts);
+      for (let g = 0; g < y.length; g++)
+        m.push(this._keepFactory(y[g], u));
+    } else
+      m = this.createOutputData(
+        e,
+        u,
+        o,
+        i,
+        r?.keepAmounts,
+        c
+      );
+    const l = {
+      outputs: m.map((y) => y.blindedMessage),
+      quote: t
+    }, { signatures: f } = await this.mint.mint(l);
+    return m.map((y, g) => y.toProof(f[g], u));
+  }
+  /**
+   * Requests a melt quote from the mint. Response returns amount and fees for a given unit in order to pay a Lightning invoice.
+   * @param invoice LN invoice that needs to get a fee estimate
+   * @returns the mint will create and return a melt quote for the invoice with an amount and fee reserve
+   */
+  async createMeltQuote(e) {
+    const t = {
+      unit: this._unit,
+      request: e
+    };
+    return await this.mint.createMeltQuote(t);
+  }
+  /**
+   * Return an existing melt quote from the mint.
+   * @param quote ID of the melt quote
+   * @returns the mint will return an existing melt quote
+   */
+  async checkMeltQuote(e) {
+    return await this.mint.checkMeltQuote(e);
+  }
+  /**
+   * Melt proofs for a melt quote. proofsToSend must be at least amount+fee_reserve form the melt quote. This function does not perform coin selection!.
+   * Returns melt quote and change proofs
+   * @param meltQuote ID of the melt quote
+   * @param proofsToSend proofs to melt
+   * @param {MeltProofOptions} [options] - Optional parameters for configuring the Melting Proof operation
+   * @returns
+   */
+  async meltProofs(e, t, n) {
+    const { keysetId: r, counter: o, privkey: i } = n || {}, c = await this.getKeys(r), a = this.createBlankOutputs(
+      U(t) - e.amount,
+      c,
+      o,
+      this._keepFactory
+    );
+    i != null && (t = oe(
+      t.map((u) => ({
+        amount: u.amount,
+        C: x(u.C),
+        id: u.id,
+        secret: new TextEncoder().encode(u.secret)
+      })),
+      i
+    ).map((u) => z(u))), t = L(t);
+    const h = {
+      quote: e.quote,
+      inputs: t,
+      outputs: a.map((u) => u.blindedMessage)
+    }, d = await this.mint.melt(h);
+    return {
+      quote: d,
+      change: d.change?.map((u, m) => a[m].toProof(u, c)) ?? []
+    };
+  }
+  /**
+   * Creates a split payload
+   * @param amount amount to send
+   * @param proofsToSend proofs to split*
+   * @param outputAmounts? optionally specify the output's amounts to keep and to send.
+   * @param counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
+   * @param pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
+   * @param privkey? will create a signature on the @param proofsToSend secrets if set
+   * @returns
+   */
+  createSwapPayload(e, t, n, r, o, i, c, a, h) {
+    const d = t.reduce((p, b) => p + b.amount, 0);
+    r && r.sendAmounts && !r.keepAmounts && (r.keepAmounts = P(
+      d - e - this.getFeesForProofs(t),
+      n.keys
+    ));
+    const u = d - e - this.getFeesForProofs(t);
+    let m = [], l = [];
+    if (a?.keep)
+      if ($(a.keep)) {
+        const p = a.keep;
+        P(u, n.keys).forEach((T) => {
+          m.push(p(T, n));
+        });
+      } else
+        m = a.keep;
+    else
+      m = this.createOutputData(
+        u,
+        n,
+        o,
+        i,
+        r?.keepAmounts,
+        h,
+        this._keepFactory
+      );
+    if (a?.send)
+      if ($(a.send)) {
+        const p = a.send;
+        P(e, n.keys).forEach((T) => {
+          l.push(p(T, n));
+        });
+      } else
+        l = a.send;
+    else
+      l = this.createOutputData(
+        e,
+        n,
+        o ? o + m.length : void 0,
+        i,
+        r?.sendAmounts,
+        h
+      );
+    c && (t = oe(
+      t.map((p) => ({
+        amount: p.amount,
+        C: x(p.C),
+        id: p.id,
+        secret: new TextEncoder().encode(p.secret)
+      })),
+      c
+    ).map((p) => z(p))), t = L(t);
+    const f = [...m, ...l], y = f.map((p, b) => b).sort(
+      (p, b) => f[p].blindedMessage.amount - f[b].blindedMessage.amount
+    ), g = [
+      ...Array(m.length).fill(!0),
+      ...Array(l.length).fill(!1)
+    ], S = y.map((p) => f[p]), w = y.map((p) => g[p]);
+    return {
+      payload: {
+        inputs: t,
+        outputs: S.map((p) => p.blindedMessage)
+      },
+      outputData: S,
+      keepVector: w,
+      sortedIndices: y
+    };
+  }
+  /**
+   * Get an array of the states of proofs from the mint (as an array of CheckStateEnum's)
+   * @param proofs (only the `secret` field is required)
+   * @returns
+   */
+  async checkProofsStates(e) {
+    const t = new TextEncoder(), n = e.map((i) => re(t.encode(i.secret)).toHex(!0)), r = 100, o = [];
+    for (let i = 0; i < n.length; i += r) {
+      const c = n.slice(i, i + r), { states: a } = await this.mint.check({
+        Ys: c
+      }), h = {};
+      a.forEach((d) => {
+        h[d.Y] = d;
+      });
+      for (let d = 0; d < c.length; d++) {
+        const u = h[c[d]];
+        if (!u)
+          throw new Error("Could not find state for proof with Y: " + c[d]);
+        o.push(u);
+      }
+    }
+    return o;
+  }
+  /**
+   * Register a callback to be called whenever a mint quote's state changes
+   * @param quoteIds List of mint quote IDs that should be subscribed to
+   * @param callback Callback function that will be called whenever a mint quote state changes
+   * @param errorCallback
+   * @returns
+   */
+  async onMintQuoteUpdates(e, t, n) {
+    if (await this.mint.connectWebSocket(), !this.mint.webSocketConnection)
+      throw new Error("failed to establish WebSocket connection.");
+    const r = this.mint.webSocketConnection.createSubscription(
+      { kind: "bolt11_mint_quote", filters: e },
+      t,
+      n
+    );
+    return () => {
+      this.mint.webSocketConnection?.cancelSubscription(r, t);
+    };
+  }
+  /**
+   * Register a callback to be called whenever a melt quote's state changes
+   * @param quoteIds List of melt quote IDs that should be subscribed to
+   * @param callback Callback function that will be called whenever a melt quote state changes
+   * @param errorCallback
+   * @returns
+   */
+  async onMeltQuotePaid(e, t, n) {
+    return this.onMeltQuoteUpdates(
+      [e],
+      (r) => {
+        r.state === N.PAID && t(r);
+      },
+      n
+    );
+  }
+  /**
+   * Register a callback to be called when a single mint quote gets paid
+   * @param quoteId Mint quote id that should be subscribed to
+   * @param callback Callback function that will be called when this mint quote gets paid
+   * @param errorCallback
+   * @returns
+   */
+  async onMintQuotePaid(e, t, n) {
+    return this.onMintQuoteUpdates(
+      [e],
+      (r) => {
+        r.state === W.PAID && t(r);
+      },
+      n
+    );
+  }
+  /**
+   * Register a callback to be called when a single melt quote gets paid
+   * @param quoteId Melt quote id that should be subscribed to
+   * @param callback Callback function that will be called when this melt quote gets paid
+   * @param errorCallback
+   * @returns
+   */
+  async onMeltQuoteUpdates(e, t, n) {
+    if (await this.mint.connectWebSocket(), !this.mint.webSocketConnection)
+      throw new Error("failed to establish WebSocket connection.");
+    const r = this.mint.webSocketConnection.createSubscription(
+      { kind: "bolt11_melt_quote", filters: e },
+      t,
+      n
+    );
+    return () => {
+      this.mint.webSocketConnection?.cancelSubscription(r, t);
+    };
+  }
+  /**
+   * Register a callback to be called whenever a subscribed proof state changes
+   * @param proofs List of proofs that should be subscribed to
+   * @param callback Callback function that will be called whenever a proof's state changes
+   * @param errorCallback
+   * @returns
+   */
+  async onProofStateUpdates(e, t, n) {
+    if (await this.mint.connectWebSocket(), !this.mint.webSocketConnection)
+      throw new Error("failed to establish WebSocket connection.");
+    const r = new TextEncoder(), o = {};
+    for (let a = 0; a < e.length; a++) {
+      const h = re(r.encode(e[a].secret)).toHex(!0);
+      o[h] = e[a];
+    }
+    const i = Object.keys(o), c = this.mint.webSocketConnection.createSubscription(
+      { kind: "proof_state", filters: i },
+      (a) => {
+        t({ ...a, proof: o[a.Y] });
+      },
+      n
+    );
+    return () => {
+      this.mint.webSocketConnection?.cancelSubscription(c, t);
+    };
+  }
+  /**
+   * Creates blinded messages for a according to @param amounts
+   * @param amount array of amounts to create blinded messages for
+   * @param counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
+   * @param keyksetId? override the keysetId derived from the current mintKeys with a custom one. This should be a keyset that was fetched from the `/keysets` endpoint
+   * @param pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
+   * @returns blinded messages, secrets, rs, and amounts
+   */
+  createOutputData(e, t, n, r, o, i, c) {
+    let a;
+    if (r)
+      a = q.createP2PKData({ pubkey: r }, e, t, o);
+    else if (n || n === 0) {
+      if (!this._seed)
+        throw new Error("cannot create deterministic messages without seed");
+      a = q.createDeterministicData(
+        e,
+        this._seed,
+        n,
+        t,
+        o
+      );
+    } else i ? a = q.createP2PKData(i, e, t, o) : c ? a = P(e, t.keys).map((d) => c(d, t)) : a = q.createRandomData(e, t, o);
+    return a;
+  }
+  /**
+   * Creates NUT-08 blank outputs (fee returns) for a given fee reserve
+   * See: https://github.com/cashubtc/nuts/blob/main/08.md
+   * @param amount amount to cover with blank outputs
+   * @param keysetId mint keysetId
+   * @param counter? optionally set counter to derive secret deterministically. CashuWallet class must be initialized with seed phrase to take effect
+   * @returns blinded messages, secrets, and rs
+   */
+  createBlankOutputs(e, t, n, r) {
+    let o = Math.ceil(Math.log2(e)) || 1;
+    o < 0 && (o = 0);
+    const i = o ? Array(o).fill(1) : [];
+    return this.createOutputData(e, t, n, void 0, i, void 0, r);
+  }
+}
+
+//# sourceMappingURL=cashu-ts.es.js.map
 
 
 /***/ })
